@@ -1,277 +1,2416 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Calendar</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Calendar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&display=swap" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css" />
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Segoe UI',system-ui,sans-serif;background:#fff;color:#111;font-size:14px;padding:0}
-  .cal-wrap{padding:1rem;max-width:960px;margin:0 auto}
-  .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px}
-  .cal-nav{display:flex;align-items:center;gap:8px}
-  .month-label{font-size:18px;font-weight:500;min-width:200px}
-  .btn{background:transparent;border:1px solid #ddd;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:13px;color:#111}
-  .btn:hover{background:#f5f5f5}
-  .btn-primary{background:#4285f4;color:#fff;border-color:#4285f4}
-  .btn-primary:hover{background:#3070d8;border-color:#3070d8}
-  .view-tabs{display:flex;gap:4px}
-  .view-tab{padding:5px 14px;border-radius:6px;cursor:pointer;font-size:13px;border:1px solid #ddd;background:transparent;color:#111}
-  .view-tab.active{background:#4285f4;color:#fff;border-color:#4285f4}
-  .day-names{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:12px;color:#888;padding-bottom:4px;border-bottom:1px solid #eee}
-  .day-names span{padding:4px 0}
-  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);border-left:1px solid #eee;border-top:1px solid #eee}
-  .cal-cell{min-height:90px;border-right:1px solid #eee;border-bottom:1px solid #eee;padding:4px;cursor:pointer;position:relative}
-  .cal-cell:hover{background:#f9f9f9}
-  .cal-cell.other-month .day-num{color:#bbb}
-  .cal-cell.today .day-num{background:#4285f4;color:#fff;border-radius:50%}
-  .day-num{font-size:12px;font-weight:500;margin-bottom:3px;width:22px;height:22px;display:flex;align-items:center;justify-content:center}
-  .event-pill{border-radius:3px;padding:1px 5px;font-size:11px;margin-bottom:2px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff}
-  .more-link{font-size:11px;color:#4285f4;cursor:pointer;padding:1px 5px}
-  .week-grid{display:grid;grid-template-columns:50px repeat(7,1fr);border-left:1px solid #eee;border-top:1px solid #eee;overflow-y:auto;max-height:75vh}
-  .week-header-row{display:grid;grid-template-columns:50px repeat(7,1fr);border-left:1px solid #eee;position:sticky;top:0;background:#fff;z-index:5}
-  .week-header-cell{border-right:1px solid #eee;border-bottom:1px solid #eee;padding:4px 8px;text-align:center;font-size:12px;color:#888}
-  .week-header-cell.today-header{color:#4285f4;font-weight:500}
-  .hour-label{border-right:1px solid #eee;border-bottom:1px solid #eee;font-size:11px;color:#aaa;padding:2px 4px;text-align:right;height:48px}
-  .hour-cell{border-right:1px solid #eee;border-bottom:1px solid #eee;height:48px;position:relative;cursor:pointer}
-  .hour-cell:hover{background:#f9f9f9}
-  .week-event{position:absolute;border-radius:3px;padding:1px 4px;font-size:11px;color:#fff;overflow:hidden;cursor:pointer;z-index:2;left:1px;right:1px}
-  .overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:100;align-items:center;justify-content:center}
-  .overlay.show{display:flex}
-  .modal{background:#fff;border-radius:12px;padding:1.5rem;width:340px;max-width:95vw;border:1px solid #ddd;box-shadow:0 8px 32px rgba(0,0,0,0.12)}
-  .modal h3{font-size:16px;font-weight:500;margin-bottom:1rem}
-  .modal input,.modal textarea,.modal select{width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;background:#f9f9f9;color:#111;margin-bottom:10px;font-family:inherit}
-  .modal label{font-size:12px;color:#888;display:block;margin-bottom:3px}
-  .color-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-  .color-dot{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform 0.1s}
-  .color-dot.selected{border-color:#333;transform:scale(1.2)}
-  .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
-  .event-detail-modal{background:#fff;border-radius:12px;padding:1.25rem 1.5rem;width:320px;max-width:95vw;border:1px solid #ddd;box-shadow:0 8px 32px rgba(0,0,0,0.12)}
+:root {
+  --bg-base: #1c1c1c;
+  --bg-elev: #242424;
+  --bg-hover: #2a2a2a;
+  --bg-active: #2f2f2f;
+  --bg-weekend: #1e1e1e;
+
+  --border-subtle: #2e2e2e;
+  --border-faint: #252525;
+  --border-default: #3a3a3a;
+  --border-emph: #484848;
+
+  --text-primary: #f0f0f0;
+  --text-secondary: #a0a0a0;
+  --text-tertiary: #666666;
+  --text-dim: #444444;
+
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --accent-muted: rgba(59, 130, 246, 0.15);
+
+  --prio-high: #ef4444;
+  --prio-med: #f59e0b;
+  --prio-low: #22c55e;
+
+  --time-line: #ef4444;
+
+  --c1: #7c8cf8;
+  --c2: #5eaaf5;
+  --c3: #4cc3d3;
+  --c4: #4ec9b0;
+  --c5: #7bc97f;
+  --c6: #e8b65a;
+  --c7: #e87a7a;
+  --c8: #e891b8;
+  --c9: #b08aef;
+  --c10: #8e9bae;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+button, input, textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+input, textarea, select {
+  background: var(--bg-base);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: var(--text-primary);
+  outline: none;
+  width: 100%;
+  font-size: 13px;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--accent);
+}
+
+textarea { resize: vertical; min-height: 60px; }
+
+::placeholder { color: var(--text-tertiary); }
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-emph); }
+
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-base);
+  flex-wrap: wrap;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.nav-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  border-radius: 6px;
+  transition: background 0.1s;
+  font-size: 16px;
+}
+
+.nav-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+.month-label {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text-primary);
+  padding: 0 8px;
+  min-width: 160px;
+  text-align: center;
+}
+
+.today-btn {
+  padding: 6px 12px;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 500;
+  transition: background 0.1s;
+  margin-left: 8px;
+}
+
+.today-btn:hover { background: var(--bg-hover); }
+
+.mini-stats {
+  font-size: 12px;
+  color: var(--text-secondary);
+  user-select: none;
+}
+
+.view-toggle {
+  display: inline-flex;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  overflow: hidden;
+  padding: 2px;
+  background: transparent;
+}
+
+.view-toggle button {
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  border-radius: 4px;
+  transition: background 0.1s;
+}
+
+.view-toggle button.active {
+  background: var(--bg-active);
+  color: var(--text-primary);
+}
+
+.new-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: var(--accent);
+  color: white;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background 0.1s;
+}
+
+.new-btn:hover { background: var(--accent-hover); }
+
+.settings-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  font-size: 16px;
+  border-radius: 6px;
+  transition: background 0.1s;
+}
+
+.settings-btn:hover { background: var(--bg-hover); color: var(--text-secondary); }
+
+.content { flex: 1; display: flex; flex-direction: column; }
+
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-top: 1px solid var(--border-subtle);
+  flex: 1;
+}
+
+.month-grid.with-weeknums {
+  grid-template-columns: 32px repeat(7, 1fr);
+}
+
+.day-name {
+  padding: 10px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  border-right: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-base);
+}
+
+.day-name:last-child { border-right: none; }
+
+.weeknum-cell {
+  padding: 8px 4px;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  border-right: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  text-align: center;
+  background: var(--bg-base);
+}
+
+.day-cell {
+  min-height: 110px;
+  padding: 6px 6px;
+  border-right: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-base);
+  position: relative;
+  transition: background 0.1s;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  overflow: hidden;
+}
+
+.day-cell:nth-child(7n) { border-right: none; }
+.month-grid.with-weeknums .day-cell:nth-child(8n) { border-right: none; }
+
+.day-cell:hover { background: var(--bg-hover); }
+
+.day-cell.weekend { background: var(--bg-weekend); }
+.day-cell.weekend:hover { background: var(--bg-hover); }
+
+.day-cell.other-month .day-num { color: var(--text-dim); }
+.day-cell.other-month { background: var(--bg-base); }
+.day-cell.other-month.weekend { background: var(--bg-weekend); }
+
+.day-num {
+  font-size: 13px;
+  color: var(--text-primary);
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.day-cell.today .day-num {
+  background: var(--accent);
+  color: white;
+  font-weight: 500;
+}
+
+.event-pill {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+}
+
+.event-pill .pill-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.event-pill .pill-icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.priority-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.priority-dot.high { background: var(--prio-high); }
+.priority-dot.medium { background: var(--prio-med); }
+.priority-dot.low { background: var(--prio-low); }
+
+.recurring-icon {
+  font-size: 10px;
+  opacity: 0.8;
+}
+
+.google-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.08);
+  font-size: 9px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.7);
+  line-height: 1;
+}
+
+.event-pill.google {
+  opacity: 0.85;
+  border-style: dashed !important;
+  cursor: pointer;
+}
+
+.more-link {
+  font-size: 11px;
+  color: var(--accent);
+  padding: 0 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.more-link:hover { text-decoration: underline; }
+
+.week-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  border-top: 1px solid var(--border-subtle);
+  overflow: hidden;
+}
+
+.week-header {
+  display: grid;
+  grid-template-columns: 48px repeat(7, 1fr);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-base);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.week-header-cell {
+  padding: 10px 8px;
+  text-align: center;
+  border-right: 1px solid var(--border-subtle);
+}
+
+.week-header-cell:last-child { border-right: none; }
+
+.wh-name {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.wh-num {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-top: 4px;
+}
+
+.week-header-cell.today .wh-name,
+.week-header-cell.today .wh-num { color: var(--accent); }
+
+.week-body {
+  display: grid;
+  grid-template-columns: 48px repeat(7, 1fr);
+  flex: 1;
+  overflow-y: auto;
+  position: relative;
+  max-height: calc(100vh - 130px);
+}
+
+.hour-labels {
+  border-right: 1px solid var(--border-subtle);
+}
+
+.hour-label {
+  height: 56px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-align: right;
+  padding: 2px 6px 0 0;
+  position: relative;
+}
+
+.day-column {
+  border-right: 1px solid var(--border-subtle);
+  position: relative;
+}
+
+.day-column:last-child { border-right: none; }
+
+.hour-slot {
+  height: 56px;
+  border-bottom: 1px solid var(--border-subtle);
+  cursor: pointer;
+  position: relative;
+  transition: background 0.1s;
+}
+
+.hour-slot:hover { background: var(--bg-hover); }
+
+.hour-slot::after {
+  content: '';
+  position: absolute;
+  top: 28px;
+  left: 0;
+  right: 0;
+  border-bottom: 1px dashed var(--border-faint);
+  pointer-events: none;
+}
+
+.week-event {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  overflow: hidden;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 2;
+}
+
+.week-event .we-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.week-event .we-time {
+  font-size: 10px;
+  opacity: 0.75;
+  font-weight: 400;
+}
+
+.week-event.google {
+  opacity: 0.85;
+  border-left-style: dashed !important;
+}
+
+.now-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 2px solid var(--time-line);
+  z-index: 5;
+  pointer-events: none;
+}
+
+.now-line::before {
+  content: '';
+  position: absolute;
+  left: -3px;
+  top: -4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--time-line);
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+
+.modal {
+  background: var(--bg-elev);
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  padding: 18px;
+  width: 320px;
+  max-width: 100%;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+.modal-wide { width: 440px; }
+.modal-xwide { width: 520px; }
+
+.modal-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 14px;
+  color: var(--text-primary);
+}
+
+.field {
+  margin-bottom: 12px;
+}
+
+.field-row {
+  display: flex;
+  gap: 8px;
+}
+
+.field-row > .field { flex: 1; margin-bottom: 12px; }
+
+.label {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  margin-bottom: 5px;
+}
+
+.modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.btn-primary {
+  flex: 1;
+  padding: 9px 14px;
+  background: var(--accent);
+  color: white;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.1s;
+  text-align: center;
+}
+
+.btn-primary:hover { background: var(--accent-hover); }
+
+.btn-secondary {
+  padding: 9px 14px;
+  border: 1px solid var(--border-default);
+  background: transparent;
+  color: var(--text-primary);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.1s;
+}
+
+.btn-secondary:hover { background: var(--bg-hover); }
+
+.btn-danger {
+  padding: 9px 14px;
+  background: var(--prio-high);
+  color: white;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.1s;
+}
+
+.btn-danger:hover { background: #dc2626; }
+
+.text-link {
+  color: var(--accent);
+  font-size: 12px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.text-link:hover { text-decoration: underline; }
+
+.text-link.danger { color: var(--prio-high); }
+
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+
+.seg-btn {
+  padding: 6px 4px;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  background: var(--bg-base);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  transition: background 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.seg-btn:hover { background: var(--bg-hover); }
+
+.seg-btn.active {
+  border-color: var(--border-emph);
+  background: var(--bg-active);
+  color: var(--text-primary);
+}
+
+.seg-btn .seg-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.toggle {
+  width: 32px;
+  height: 18px;
+  border-radius: 9px;
+  background: var(--border-default);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.1s;
+  flex-shrink: 0;
+}
+
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  background: var(--text-primary);
+  border-radius: 50%;
+}
+
+.toggle.on { background: var(--accent); }
+.toggle.on::after { left: 16px; background: white; }
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  gap: 12px;
+}
+
+.toggle-row label {
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+  flex: 1;
+}
+
+.color-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.color-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid transparent;
+}
+
+.color-dot.selected { border-color: white; }
+.color-dot .check { color: white; font-size: 12px; line-height: 1; }
+
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 90;
+}
+
+.settings-panel {
+  position: fixed;
+  top: 60px;
+  right: 16px;
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 80px);
+  background: var(--bg-elev);
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  padding: 16px;
+  z-index: 95;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  overflow-y: auto;
+}
+
+.settings-section { margin-bottom: 16px; }
+
+.settings-section-title {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.settings-action-btn {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+  margin-bottom: 6px;
+  transition: background 0.1s;
+}
+
+.settings-action-btn:hover { background: var(--bg-hover); }
+
+.settings-action-btn.danger {
+  color: var(--prio-high);
+  border-color: rgba(239,68,68,0.3);
+}
+
+.settings-action-btn.danger:hover { background: rgba(239,68,68,0.1); }
+
+.sync-status {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 6px;
+  padding: 4px 0;
+}
+
+.sync-status.error { color: var(--prio-high); }
+.sync-status.ok { color: var(--prio-low); }
+
+.ctx-menu {
+  position: fixed;
+  background: var(--bg-elev);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 4px;
+  z-index: 200;
+  min-width: 200px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.ctx-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: var(--text-primary);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.ctx-item:hover { background: var(--bg-active); }
+.ctx-item .ctx-icon { width: 16px; display: inline-flex; justify-content: center; color: var(--text-secondary); }
+
+.ctx-divider {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: 4px 2px;
+}
+
+.palette {
+  background: var(--bg-elev);
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  width: 520px;
+  max-width: calc(100vw - 32px);
+  overflow: hidden;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+}
+
+.palette input {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid var(--border-subtle);
+  background: transparent;
+  padding: 14px 16px;
+  font-size: 14px;
+  border-radius: 0;
+}
+
+.palette input:focus { border-bottom-color: var(--border-subtle); }
+
+.palette-list {
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.palette-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.palette-item.active { background: var(--bg-active); }
+.palette-item .pal-icon { color: var(--text-secondary); width: 16px; }
+
+.palette-empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 13px;
+}
+
+.agenda-list {
+  max-height: 60vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.agenda-item {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: var(--bg-base);
+}
+
+.agenda-item:hover { background: var(--bg-hover); }
+
+.agenda-bar {
+  width: 3px;
+  flex-shrink: 0;
+  border-radius: 2px;
+}
+
+.agenda-body { flex: 1; min-width: 0; }
+
+.agenda-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.agenda-meta {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.agenda-notes {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.agenda-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.agenda-actions button {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background 0.1s;
+}
+
+.agenda-actions button:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+.event-detail-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.event-detail-bar {
+  width: 4px;
+  align-self: stretch;
+  border-radius: 2px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  min-height: 24px;
+}
+
+.event-detail-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.event-detail-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 4px 0;
+}
+
+.event-detail-meta-row i { color: var(--text-tertiary); width: 16px; }
+
+.event-detail-notes {
+  background: var(--bg-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  margin-top: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.confirm-input { margin-top: 8px; }
+
+@media (max-width: 640px) {
+  .header { padding: 10px 12px; gap: 8px; }
+  .mini-stats { display: none; }
+  .month-label { min-width: 110px; font-size: 16px; padding: 0 4px; }
+  .day-cell { min-height: 64px; padding: 4px 4px; }
+  .day-num { font-size: 12px; width: 20px; height: 20px; }
+  .event-pill { font-size: 10px; padding: 1px 5px; }
+  .modal { width: 100%; }
+  .palette { width: 100%; }
+  .settings-panel { left: 12px; right: 12px; width: auto; }
+  .today-btn { padding: 5px 8px; font-size: 11px; }
+  .new-btn { padding: 5px 8px; }
+}
 </style>
 </head>
 <body>
-
-<div class="cal-wrap">
-  <div class="cal-header">
-    <div class="cal-nav">
-      <button class="btn" onclick="navigate(-1)"><i class="ti ti-chevron-left"></i></button>
-      <span class="month-label" id="monthLabel"></span>
-      <button class="btn" onclick="navigate(1)"><i class="ti ti-chevron-right"></i></button>
-      <button class="btn" onclick="goToday()" style="margin-left:4px">Today</button>
-    </div>
-    <div style="display:flex;align-items:center;gap:8px">
-      <div class="view-tabs">
-        <button class="view-tab active" id="tab-month" onclick="setView('month')">Month</button>
-        <button class="view-tab" id="tab-week" onclick="setView('week')">Week</button>
-      </div>
-      <button class="btn btn-primary" onclick="openNewEvent(null)"><i class="ti ti-plus"></i> Event</button>
-    </div>
-  </div>
-  <div id="calBody"></div>
-</div>
-
-<div class="overlay" id="overlay">
-  <div class="modal" id="modalBox"></div>
-</div>
+<div id="app" class="app"></div>
 
 <script>
-const COLORS=['#4285f4','#0f9d58','#f4b400','#db4437','#ab47bc','#00acc1','#ff7043','#5c6bc0','#e91e63','#795548'];
-let view='month', today=new Date(), cur=new Date(today.getFullYear(),today.getMonth(),1);
-let events=[];
-let editing=null;
+'use strict';
 
-function loadEvents(){
-  try{events=JSON.parse(localStorage.getItem('notion_cal_events')||'[]')}
-  catch(e){events=[]}
-}
-function saveEvents(){
-  try{localStorage.setItem('notion_cal_events',JSON.stringify(events))}catch(e){}
-}
-loadEvents();
+const STORAGE_EVENTS = 'notion_cal_events';
+const STORAGE_SETTINGS = 'notion_cal_settings';
+const STORAGE_GCAL = 'notion_cal_google_events';
+const STORAGE_GCAL_META = 'notion_cal_google_meta';
 
-function navigate(d){
-  if(view==='month') cur=new Date(cur.getFullYear(),cur.getMonth()+d,1);
-  else cur=new Date(cur.getTime()+d*7*86400000);
-  render();
-}
-function goToday(){
-  if(view==='month') cur=new Date(today.getFullYear(),today.getMonth(),1);
-  else cur=new Date(today);
-  render();
-}
-function setView(v){
-  view=v;
-  document.querySelectorAll('.view-tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('tab-'+v).classList.add('active');
-  if(v==='week') cur=new Date(today);
-  render();
-}
-function fmtDate(d){return d.toISOString().slice(0,10)}
-function isToday(d){return fmtDate(d)===fmtDate(today)}
-function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
+const COLORS = [
+  '#7c8cf8', '#5eaaf5', '#4cc3d3', '#4ec9b0', '#7bc97f',
+  '#e8b65a', '#e87a7a', '#e891b8', '#b08aef', '#8e9bae'
+];
 
-function render(){
-  if(view==='month') renderMonth();
-  else renderWeek();
+const DEFAULT_SETTINGS = {
+  showWeekendShading: true,
+  showWeekNumbers: false,
+  startOnMonday: false,
+  showPriorityDots: true,
+  showRecurringIcon: true,
+  use24HourTime: false,
+  googleCalendarUrl: '',
+  corsProxy: 'https://corsproxy.io/?url=',
+  autoSyncOnLoad: true
+};
+
+const DAY_NAMES_SUN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const DAY_NAMES_MON = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAY_NAMES_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+const state = {
+  events: [],
+  gEvents: [],
+  settings: { ...DEFAULT_SETTINGS },
+  view: 'month',
+  cursor: new Date(),
+  modal: null,
+  palette: null,
+  paletteQuery: '',
+  paletteIndex: 0,
+  contextMenu: null,
+  settingsOpen: false,
+  syncStatus: null
+};
+
+function esc(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
-function renderMonth(){
-  const y=cur.getFullYear(),m=cur.getMonth();
-  document.getElementById('monthLabel').textContent=cur.toLocaleString('default',{month:'long',year:'numeric'});
-  const startDay=new Date(y,m,1).getDay();
-  let html='<div class="day-names">';
-  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d=>html+=`<span>${d}</span>`);
-  html+='</div><div class="cal-grid">';
-  let day=new Date(y,m,1-startDay);
-  for(let i=0;i<42;i++){
-    const dd=new Date(day);
-    const isOther=dd.getMonth()!==m;
-    const isTod=isToday(dd);
-    const ds=fmtDate(dd);
-    const dayEvts=events.filter(e=>e.date===ds).sort((a,b)=>a.time.localeCompare(b.time));
-    html+=`<div class="cal-cell${isOther?' other-month':''}${isTod?' today':''}" onclick="openNewEvent('${ds}')">`;
-    html+=`<div class="day-num">${dd.getDate()}</div>`;
-    dayEvts.slice(0,3).forEach(e=>{
-      html+=`<div class="event-pill" style="background:${e.color||'#4285f4'}" onclick="event.stopPropagation();viewEvent('${e.id}')">${e.time?e.time+' ':''}<b style="font-weight:500">${esc(e.title)}</b></div>`;
-    });
-    if(dayEvts.length>3) html+=`<div class="more-link">+${dayEvts.length-3} more</div>`;
-    html+='</div>';
-    day.setDate(day.getDate()+1);
+function uid() {
+  return 'ev_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+}
+
+function pad(n) { return String(n).padStart(2,'0'); }
+
+function isoDate(d) {
+  return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+}
+
+function parseISODate(s) {
+  const [y,m,d] = s.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+
+function sameDay(a, b) {
+  return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+}
+
+function addDays(d, n) {
+  const nd = new Date(d); nd.setDate(nd.getDate()+n); return nd;
+}
+
+function addMonths(d, n) {
+  const nd = new Date(d); nd.setMonth(nd.getMonth()+n); return nd;
+}
+
+function startOfWeek(d) {
+  const nd = new Date(d);
+  const day = nd.getDay();
+  const offset = state.settings.startOnMonday ? (day===0 ? 6 : day-1) : day;
+  nd.setDate(nd.getDate() - offset);
+  nd.setHours(0,0,0,0);
+  return nd;
+}
+
+function startOfMonth(d) { return new Date(d.getFullYear(), d.getMonth(), 1); }
+function endOfMonth(d) { return new Date(d.getFullYear(), d.getMonth()+1, 0); }
+
+function getWeekNumber(d) {
+  const target = new Date(d.valueOf());
+  const dayNr = (d.getDay() + 6) % 7;
+  target.setDate(target.getDate() - dayNr + 3);
+  const firstThursday = target.valueOf();
+  target.setMonth(0, 1);
+  if (target.getDay() !== 4) {
+    target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
   }
-  html+='</div>';
-  document.getElementById('calBody').innerHTML=html;
+  return 1 + Math.ceil((firstThursday - target) / 604800000);
 }
 
-function getWeekStart(d){
-  const s=new Date(d);s.setDate(d.getDate()-d.getDay());s.setHours(0,0,0,0);return s;
+function formatTime(time24) {
+  if (!time24) return '';
+  const [h,m] = time24.split(':').map(Number);
+  if (state.settings.use24HourTime) return pad(h) + ':' + pad(m);
+  const period = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  return h12 + ':' + pad(m) + ' ' + period;
 }
 
-function renderWeek(){
-  const ws=getWeekStart(cur);
-  const days=Array.from({length:7},(_,i)=>{const d=new Date(ws);d.setDate(ws.getDate()+i);return d});
-  const label=`${ws.toLocaleString('default',{month:'short',day:'numeric'})} – ${days[6].toLocaleString('default',{month:'short',day:'numeric',year:'numeric'})}`;
-  document.getElementById('monthLabel').textContent=label;
-  let html='<div class="week-header-row"><div class="week-header-cell"></div>';
-  days.forEach(d=>{
-    const tod=isToday(d);
-    html+=`<div class="week-header-cell${tod?' today-header':''}">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]} ${d.getDate()}</div>`;
-  });
-  html+='</div><div class="week-grid">';
-  for(let h=0;h<24;h++){
-    const ampm=h===0?'12am':h<12?h+'am':h===12?'12pm':(h-12)+'pm';
-    html+=`<div class="hour-label">${ampm}</div>`;
-    days.forEach(d=>{
-      const ds=fmtDate(d);
-      const hh=String(h).padStart(2,'0');
-      const slotEvts=events.filter(e=>e.date===ds&&e.time&&e.time.startsWith(hh));
-      html+=`<div class="hour-cell" onclick="openNewEvent('${ds}','${hh}:00')">`;
-      slotEvts.forEach(e=>{
-        const dur=e.duration||60;
-        const hPx=Math.max(20,dur/60*48);
-        html+=`<div class="week-event" style="background:${e.color||'#4285f4'};top:0;height:${hPx}px" onclick="event.stopPropagation();viewEvent('${e.id}')">${esc(e.title)}</div>`;
-      });
-      html+='</div>';
-    });
-  }
-  html+='</div>';
-  document.getElementById('calBody').innerHTML=html;
+function formatHourLabel(h) {
+  if (state.settings.use24HourTime) return pad(h) + ':00';
+  if (h === 0) return '12 AM';
+  if (h === 12) return '12 PM';
+  if (h < 12) return h + ' AM';
+  return (h - 12) + ' PM';
 }
 
-function openNewEvent(date,time){
-  editing=null;
-  const def={date:date||fmtDate(today),time:time||'09:00',color:'#4285f4'};
-  showModal(def,'new');
+function hexToRgb(hex) {
+  hex = hex.replace('#','');
+  const n = parseInt(hex, 16);
+  return { r: (n>>16)&255, g: (n>>8)&255, b: n&255 };
 }
 
-function viewEvent(id){
-  const ev=events.find(e=>e.id===id);if(!ev)return;
-  const mb=document.getElementById('modalBox');
-  mb.className='event-detail-modal';
-  mb.innerHTML=`
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <div style="display:flex;align-items:center;gap:8px">
-        <span style="width:12px;height:12px;border-radius:2px;background:${ev.color||'#4285f4'};display:inline-block"></span>
-        <span style="font-size:16px;font-weight:500">${esc(ev.title)}</span>
-      </div>
-      <button class="btn" onclick="closeModal()" style="padding:3px 8px"><i class="ti ti-x"></i></button>
-    </div>
-    <div style="font-size:13px;color:#666;margin-bottom:6px"><i class="ti ti-calendar" style="font-size:14px;vertical-align:-2px;margin-right:6px"></i>${ev.date}${ev.time?' · '+ev.time:''}</div>
-    ${ev.desc?`<div style="font-size:13px;margin-top:8px">${esc(ev.desc)}</div>`:''}
-    <div style="display:flex;gap:8px;margin-top:14px">
-      <button class="btn" style="flex:1" onclick="editEvent('${ev.id}')"><i class="ti ti-edit"></i> Edit</button>
-      <button class="btn" style="flex:1;color:#db4437;border-color:#db4437" onclick="deleteEvent('${ev.id}')"><i class="ti ti-trash"></i> Delete</button>
-    </div>`;
-  document.getElementById('overlay').classList.add('show');
+function lightenColor(hex, amt) {
+  const { r, g, b } = hexToRgb(hex);
+  const lr = Math.round(r + (255 - r) * amt);
+  const lg = Math.round(g + (255 - g) * amt);
+  const lb = Math.round(b + (255 - b) * amt);
+  return `rgb(${lr},${lg},${lb})`;
 }
 
-function editEvent(id){
-  const ev=events.find(e=>e.id===id);if(!ev)return;
-  editing=id;
-  showModal(ev,'edit');
-}
-
-function showModal(ev,mode){
-  const mb=document.getElementById('modalBox');
-  mb.className='modal';
-  const colorDots=COLORS.map(c=>`<div class="color-dot${(ev.color||'#4285f4')===c?' selected':''}" style="background:${c}" data-c="${c}" onclick="selectColor(this)"></div>`).join('');
-  mb.innerHTML=`
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-      <h3>${mode==='edit'?'Edit event':'New event'}</h3>
-      <button class="btn" onclick="closeModal()" style="padding:3px 8px"><i class="ti ti-x"></i></button>
-    </div>
-    <label>Title</label>
-    <input id="ev-title" placeholder="Event title" value="${esc(ev.title||'')}">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      <div><label>Date</label><input type="date" id="ev-date" value="${ev.date||''}"></div>
-      <div><label>Time</label><input type="time" id="ev-time" value="${ev.time||''}"></div>
-    </div>
-    <label style="margin-top:2px">Duration (minutes)</label>
-    <input type="number" id="ev-dur" value="${ev.duration||60}" min="15" step="15">
-    <label>Notes</label>
-    <textarea id="ev-desc" rows="2" placeholder="Optional notes">${esc(ev.desc||'')}</textarea>
-    <label>Color</label>
-    <div class="color-row" id="colorRow">${colorDots}</div>
-    <div class="modal-actions">
-      <button class="btn" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveEvent()">Save</button>
-    </div>`;
-  document.getElementById('overlay').classList.add('show');
-}
-
-function selectColor(el){
-  document.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('selected'));
-  el.classList.add('selected');
-}
-function getSelectedColor(){
-  const s=document.querySelector('.color-dot.selected');
-  return s?s.dataset.c:'#4285f4';
-}
-function saveEvent(){
-  const title=document.getElementById('ev-title').value.trim();
-  if(!title){alert('Please add a title');return}
-  const ev={
-    id:editing||('ev_'+Date.now()+'_'+Math.random().toString(36).slice(2)),
-    title,
-    date:document.getElementById('ev-date').value,
-    time:document.getElementById('ev-time').value,
-    duration:parseInt(document.getElementById('ev-dur').value)||60,
-    desc:document.getElementById('ev-desc').value.trim(),
-    color:getSelectedColor()
+function eventColors(hex) {
+  const { r, g, b } = hexToRgb(hex);
+  return {
+    bg: `rgba(${r},${g},${b},0.15)`,
+    border: `rgba(${r},${g},${b},0.4)`,
+    text: lightenColor(hex, 0.55)
   };
-  if(editing){const i=events.findIndex(e=>e.id===editing);if(i>-1)events[i]=ev;}
-  else events.push(ev);
-  saveEvents();closeModal();render();
 }
-function deleteEvent(id){
-  if(!confirm('Delete this event?')) return;
-  events=events.filter(e=>e.id!==id);
-  saveEvents();closeModal();render();
-}
-function closeModal(){document.getElementById('overlay').classList.remove('show');}
-document.getElementById('overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
 
-render();
+function download(filename, content, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+function loadEvents() {
+  try {
+    const raw = localStorage.getItem(STORAGE_EVENTS);
+    state.events = raw ? JSON.parse(raw) : [];
+  } catch { state.events = []; }
+}
+
+function saveEvents() {
+  localStorage.setItem(STORAGE_EVENTS, JSON.stringify(state.events));
+}
+
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem(STORAGE_SETTINGS);
+    state.settings = { ...DEFAULT_SETTINGS, ...(raw ? JSON.parse(raw) : {}) };
+  } catch { state.settings = { ...DEFAULT_SETTINGS }; }
+}
+
+function saveSettings() {
+  localStorage.setItem(STORAGE_SETTINGS, JSON.stringify(state.settings));
+}
+
+function loadGoogleCache() {
+  try {
+    const raw = localStorage.getItem(STORAGE_GCAL);
+    state.gEvents = raw ? JSON.parse(raw) : [];
+    const meta = localStorage.getItem(STORAGE_GCAL_META);
+    state.syncStatus = meta ? JSON.parse(meta) : null;
+  } catch { state.gEvents = []; }
+}
+
+function saveGoogleCache() {
+  localStorage.setItem(STORAGE_GCAL, JSON.stringify(state.gEvents));
+  localStorage.setItem(STORAGE_GCAL_META, JSON.stringify(state.syncStatus));
+}
+
+function unfoldICS(text) {
+  return text.replace(/\r\n[ \t]/g, '').replace(/\n[ \t]/g, '');
+}
+
+function parseICSDate(val, params) {
+  const allDay = params.VALUE === 'DATE';
+  if (allDay) {
+    const y = parseInt(val.slice(0,4),10);
+    const m = parseInt(val.slice(4,6),10) - 1;
+    const d = parseInt(val.slice(6,8),10);
+    return { date: new Date(y, m, d), allDay: true };
+  }
+  const y = parseInt(val.slice(0,4),10);
+  const mo = parseInt(val.slice(4,6),10) - 1;
+  const d = parseInt(val.slice(6,8),10);
+  const h = parseInt(val.slice(9,11),10);
+  const mi = parseInt(val.slice(11,13),10);
+  const isUTC = val.endsWith('Z');
+  let date;
+  if (isUTC) date = new Date(Date.UTC(y, mo, d, h, mi));
+  else date = new Date(y, mo, d, h, mi);
+  return { date, allDay: false };
+}
+
+function unescapeICS(s) {
+  return s.replace(/\\n/g, '\n').replace(/\\,/g, ',').replace(/\\;/g, ';').replace(/\\\\/g, '\\');
+}
+
+function parseICS(text) {
+  const lines = unfoldICS(text).split(/\r?\n/);
+  const events = [];
+  let current = null;
+  for (const line of lines) {
+    if (line === 'BEGIN:VEVENT') { current = {}; continue; }
+    if (line === 'END:VEVENT') {
+      if (current) events.push(current);
+      current = null;
+      continue;
+    }
+    if (!current) continue;
+    const colonIdx = line.indexOf(':');
+    if (colonIdx === -1) continue;
+    const left = line.slice(0, colonIdx);
+    const val = line.slice(colonIdx + 1);
+    const parts = left.split(';');
+    const key = parts[0];
+    const params = {};
+    for (let i = 1; i < parts.length; i++) {
+      const [pk, pv] = parts[i].split('=');
+      params[pk] = pv;
+    }
+    if (key === 'SUMMARY') current.summary = unescapeICS(val);
+    else if (key === 'DESCRIPTION') current.description = unescapeICS(val);
+    else if (key === 'LOCATION') current.location = unescapeICS(val);
+    else if (key === 'UID') current.uid = val;
+    else if (key === 'DTSTART') current.start = parseICSDate(val, params);
+    else if (key === 'DTEND') current.end = parseICSDate(val, params);
+    else if (key === 'RRULE') current.rrule = val;
+    else if (key === 'URL') current.url = val;
+  }
+  return events;
+}
+
+function parseRRULE(rrule) {
+  const parts = rrule.split(';');
+  const r = {};
+  for (const p of parts) {
+    const [k, v] = p.split('=');
+    r[k] = v;
+  }
+  return r;
+}
+
+function expandRecurring(ev, rangeStart, rangeEnd) {
+  if (!ev.rrule || !ev.start) return [ev];
+  const rule = parseRRULE(ev.rrule);
+  const freq = rule.FREQ;
+  const interval = parseInt(rule.INTERVAL || '1', 10);
+  const count = rule.COUNT ? parseInt(rule.COUNT, 10) : null;
+  let until = null;
+  if (rule.UNTIL) until = parseICSDate(rule.UNTIL, {}).date;
+  const results = [];
+  const startDate = new Date(ev.start.date);
+  const duration = ev.end ? (ev.end.date - ev.start.date) : 0;
+  let cur = new Date(startDate);
+  let n = 0;
+  const maxIter = 800;
+  while (n < maxIter) {
+    if (until && cur > until) break;
+    if (count && n >= count) break;
+    if (cur > rangeEnd) break;
+    if (cur >= rangeStart || addDays(cur, 1) >= rangeStart) {
+      const occStart = new Date(cur);
+      const occEnd = new Date(cur.getTime() + duration);
+      results.push({ ...ev, start: { date: occStart, allDay: ev.start.allDay }, end: { date: occEnd, allDay: ev.start.allDay }, _occurrence: n });
+    }
+    if (freq === 'DAILY') cur = addDays(cur, interval);
+    else if (freq === 'WEEKLY') cur = addDays(cur, 7 * interval);
+    else if (freq === 'MONTHLY') cur = addMonths(cur, interval);
+    else if (freq === 'YEARLY') { const nd = new Date(cur); nd.setFullYear(nd.getFullYear() + interval); cur = nd; }
+    else break;
+    n++;
+  }
+  return results;
+}
+
+function icsToEvents(parsed) {
+  const rangeStart = addMonths(new Date(), -6);
+  const rangeEnd = addMonths(new Date(), 12);
+  const out = [];
+  for (const e of parsed) {
+    if (!e.start) continue;
+    const occurrences = expandRecurring(e, rangeStart, rangeEnd);
+    for (const occ of occurrences) {
+      const d = occ.start.date;
+      const date = isoDate(d);
+      const time = occ.start.allDay ? '' : (pad(d.getHours()) + ':' + pad(d.getMinutes()));
+      let duration = 60;
+      if (occ.end && !occ.start.allDay) {
+        duration = Math.max(15, Math.round((occ.end.date - occ.start.date) / 60000));
+      } else if (occ.start.allDay) {
+        duration = 0;
+      }
+      out.push({
+        id: 'g_' + (occ.uid || uid()) + '_' + occ._occurrence,
+        title: occ.summary || '(no title)',
+        date,
+        time,
+        duration,
+        priority: 'none',
+        recurring: 'none',
+        color: '#5eaaf5',
+        desc: occ.description || '',
+        location: occ.location || '',
+        url: occ.url || '',
+        source: 'google',
+        allDay: occ.start.allDay
+      });
+    }
+  }
+  return out;
+}
+
+async function syncGoogleCalendar(silent) {
+  const url = state.settings.googleCalendarUrl.trim();
+  if (!url) {
+    state.syncStatus = { error: 'No iCal URL configured', time: Date.now() };
+    saveGoogleCache();
+    if (!silent) render();
+    return;
+  }
+  const proxy = state.settings.corsProxy || '';
+  const fetchUrl = proxy ? proxy + encodeURIComponent(url) : url;
+  state.syncStatus = { syncing: true, time: Date.now() };
+  if (state.settingsOpen) renderOverlays();
+  try {
+    const res = await fetch(fetchUrl);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    if (!text.includes('BEGIN:VCALENDAR')) throw new Error('Invalid iCal data');
+    const parsed = parseICS(text);
+    state.gEvents = icsToEvents(parsed);
+    state.syncStatus = { ok: true, count: state.gEvents.length, time: Date.now() };
+    saveGoogleCache();
+  } catch (err) {
+    state.syncStatus = { error: err.message || 'Sync failed', time: Date.now() };
+    saveGoogleCache();
+  }
+  render();
+  if (state.settingsOpen) renderOverlays();
+}
+
+function eventsOnDay(d) {
+  const iso = isoDate(d);
+  const local = state.events.filter(e => e.date === iso);
+  const google = state.gEvents.filter(e => e.date === iso);
+  const merged = [...local, ...google];
+  merged.sort((a, b) => {
+    if (a.allDay && !b.allDay) return -1;
+    if (!a.allDay && b.allDay) return 1;
+    return (a.time || '').localeCompare(b.time || '');
+  });
+  return merged;
+}
+
+function upcomingCount() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const horizon = addDays(today, 7);
+  let n = 0;
+  for (const e of state.events) {
+    const d = parseISODate(e.date);
+    if (d >= today && d < horizon) n++;
+  }
+  for (const e of state.gEvents) {
+    const d = parseISODate(e.date);
+    if (d >= today && d < horizon) n++;
+  }
+  return n;
+}
+
+function renderHeader() {
+  const monthLabel = MONTH_NAMES[state.cursor.getMonth()] + ' ' + state.cursor.getFullYear();
+  const weekLabel = (() => {
+    const ws = startOfWeek(state.cursor);
+    const we = addDays(ws, 6);
+    if (ws.getMonth() === we.getMonth()) return MONTH_NAMES[ws.getMonth()] + ' ' + ws.getDate() + '–' + we.getDate() + ', ' + ws.getFullYear();
+    return MONTH_NAMES[ws.getMonth()].slice(0,3) + ' ' + ws.getDate() + ' – ' + MONTH_NAMES[we.getMonth()].slice(0,3) + ' ' + we.getDate() + ', ' + we.getFullYear();
+  })();
+  const label = state.view === 'month' ? monthLabel : weekLabel;
+
+  const today = new Date();
+  const todayStr = DAY_NAMES_FULL[today.getDay()].slice(0,3) + ' ' + today.getDate() + ' ' + MONTH_NAMES[today.getMonth()].slice(0,3);
+  const upc = upcomingCount();
+
+  return `
+    <div class="header">
+      <div class="header-left">
+        <button class="nav-btn" data-act="prev" title="Previous"><i class="ti ti-chevron-left"></i></button>
+        <div class="month-label">${esc(label)}</div>
+        <button class="nav-btn" data-act="next" title="Next"><i class="ti ti-chevron-right"></i></button>
+        <button class="today-btn" data-act="today">Today</button>
+      </div>
+      <div class="header-right">
+        <div class="mini-stats">${esc(todayStr)} · ${upc} upcoming</div>
+        <div class="view-toggle">
+          <button class="${state.view==='month'?'active':''}" data-act="view-month">Month</button>
+          <button class="${state.view==='week'?'active':''}" data-act="view-week">Week</button>
+        </div>
+        <button class="new-btn" data-act="new"><i class="ti ti-plus"></i> New</button>
+        <button class="settings-btn" data-act="settings" title="Settings"><i class="ti ti-settings"></i></button>
+      </div>
+    </div>
+  `;
+}
+
+function renderMonth() {
+  const cursor = state.cursor;
+  const first = startOfMonth(cursor);
+  const gridStart = startOfWeek(first);
+  const total = 42;
+  const dayNames = state.settings.startOnMonday ? DAY_NAMES_MON : DAY_NAMES_SUN;
+  const showWeekNums = state.settings.showWeekNumbers;
+
+  let html = `<div class="month-grid ${showWeekNums?'with-weeknums':''}">`;
+  if (showWeekNums) html += `<div class="day-name"></div>`;
+  for (const dn of dayNames) html += `<div class="day-name">${esc(dn)}</div>`;
+
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  for (let i = 0; i < total; i++) {
+    if (showWeekNums && i % 7 === 0) {
+      const wd = addDays(gridStart, i);
+      html += `<div class="weeknum-cell">${getWeekNumber(wd)}</div>`;
+    }
+    const d = addDays(gridStart, i);
+    const inMonth = d.getMonth() === cursor.getMonth();
+    const isToday = sameDay(d, today);
+    const dow = d.getDay();
+    const isWeekend = (dow === 0 || dow === 6) && state.settings.showWeekendShading;
+    const classes = ['day-cell'];
+    if (!inMonth) classes.push('other-month');
+    if (isToday) classes.push('today');
+    if (isWeekend) classes.push('weekend');
+
+    const events = inMonth ? eventsOnDay(d) : [];
+    const visible = events.slice(0, 3);
+    const overflow = events.length - visible.length;
+
+    html += `<div class="${classes.join(' ')}" data-date="${isoDate(d)}">`;
+    html += `<div class="day-num">${d.getDate()}</div>`;
+    for (const e of visible) html += renderPill(e);
+    if (overflow > 0) {
+      html += `<div class="more-link" data-act="more" data-date="${isoDate(d)}">+${overflow} more</div>`;
+    }
+    html += `</div>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+function renderPill(e) {
+  const c = eventColors(e.color || '#5eaaf5');
+  const isGoogle = e.source === 'google';
+  const styles = `background:${c.bg};border:1px solid ${c.border};color:${c.text};`;
+  let icons = '';
+  if (state.settings.showRecurringIcon && e.recurring && e.recurring !== 'none') icons += `<i class="ti ti-rotate recurring-icon"></i>`;
+  if (isGoogle) icons += `<span class="google-badge" title="From Google Calendar">G</span>`;
+  if (state.settings.showPriorityDots && e.priority && e.priority !== 'none') icons += `<span class="priority-dot ${e.priority}"></span>`;
+  const timePrefix = (e.time && !e.allDay) ? `<span style="opacity:0.7;margin-right:3px;">${esc(formatTime(e.time))}</span>` : '';
+  return `<div class="event-pill ${isGoogle?'google':''}" style="${styles}" data-act="event" data-id="${esc(e.id)}">
+    <span class="pill-title">${timePrefix}${esc(e.title)}</span>
+    ${icons?`<span class="pill-icons">${icons}</span>`:''}
+  </div>`;
+}
+
+function renderWeek() {
+  const ws = startOfWeek(state.cursor);
+  const days = [];
+  for (let i = 0; i < 7; i++) days.push(addDays(ws, i));
+  const today = new Date(); today.setHours(0,0,0,0);
+  const dayNames = state.settings.startOnMonday ? DAY_NAMES_MON : DAY_NAMES_SUN;
+
+  let html = `<div class="week-view"><div class="week-header"><div class="week-header-cell"></div>`;
+  for (let i = 0; i < 7; i++) {
+    const d = days[i];
+    const isToday = sameDay(d, today);
+    html += `<div class="week-header-cell ${isToday?'today':''}" data-date="${isoDate(d)}">
+      <div class="wh-name">${esc(dayNames[i])}</div>
+      <div class="wh-num">${d.getDate()}</div>
+    </div>`;
+  }
+  html += `</div><div class="week-body">`;
+
+  html += `<div class="hour-labels">`;
+  for (let h = 0; h < 24; h++) html += `<div class="hour-label">${esc(formatHourLabel(h))}</div>`;
+  html += `</div>`;
+
+  for (let i = 0; i < 7; i++) {
+    const d = days[i];
+    html += `<div class="day-column" data-date="${isoDate(d)}">`;
+    for (let h = 0; h < 24; h++) {
+      html += `<div class="hour-slot" data-date="${isoDate(d)}" data-hour="${h}"></div>`;
+    }
+    const events = eventsOnDay(d);
+    for (const e of events) {
+      if (!e.time || e.allDay) continue;
+      const [hh, mm] = e.time.split(':').map(Number);
+      const top = (hh * 60 + mm) * (56 / 60);
+      const dur = Math.max(15, e.duration || 60);
+      const height = dur * (56 / 60);
+      const c = eventColors(e.color || '#5eaaf5');
+      const isGoogle = e.source === 'google';
+      const borderLeft = `border-left:3px solid ${e.color || '#5eaaf5'};`;
+      const styles = `top:${top}px;height:${height}px;background:${c.bg};border:1px solid ${c.border};${borderLeft}color:${c.text};`;
+      let icons = '';
+      if (state.settings.showRecurringIcon && e.recurring && e.recurring !== 'none') icons += `<i class="ti ti-rotate recurring-icon"></i>`;
+      if (isGoogle) icons += `<span class="google-badge">G</span>`;
+      if (state.settings.showPriorityDots && e.priority && e.priority !== 'none') icons += `<span class="priority-dot ${e.priority}"></span>`;
+      html += `<div class="week-event ${isGoogle?'google':''}" style="${styles}" data-act="event" data-id="${esc(e.id)}">
+        <div class="we-title">${esc(e.title)} ${icons}</div>
+        <div class="we-time">${esc(formatTime(e.time))} · ${dur}m</div>
+      </div>`;
+    }
+    if (sameDay(d, today)) {
+      const now = new Date();
+      const top = (now.getHours() * 60 + now.getMinutes()) * (56 / 60);
+      html += `<div class="now-line" style="top:${top}px;"></div>`;
+    }
+    html += `</div>`;
+  }
+  html += `</div></div>`;
+  return html;
+}
+
+function render() {
+  const app = document.getElementById('app');
+  let html = renderHeader();
+  html += '<div class="content">';
+  html += state.view === 'month' ? renderMonth() : renderWeek();
+  html += '</div>';
+  app.innerHTML = html;
+  attachHandlers();
+  renderOverlays();
+  if (state.view === 'week') {
+    const body = document.querySelector('.week-body');
+    if (body) {
+      const now = new Date();
+      body.scrollTop = Math.max(0, (now.getHours() - 2) * 56);
+    }
+  }
+}
+
+function renderOverlays() {
+  const old = document.getElementById('overlays-root');
+  if (old) old.remove();
+  const root = document.createElement('div');
+  root.id = 'overlays-root';
+  document.body.appendChild(root);
+
+  if (state.modal) root.appendChild(buildModal(state.modal));
+  if (state.palette) root.appendChild(buildOverlay(buildPalette(), { onClose: closePalette }));
+  if (state.contextMenu) root.appendChild(buildContextMenu());
+  if (state.settingsOpen) root.appendChild(buildSettings());
+}
+
+function buildOverlay(child, opts = {}) {
+  const o = document.createElement('div');
+  o.className = 'overlay';
+  o.addEventListener('click', (ev) => {
+    if (ev.target === o) {
+      if (opts.onClose) opts.onClose();
+      else closeModal();
+    }
+  });
+  o.appendChild(child);
+  return o;
+}
+
+function buildModal(m) {
+  if (m.type === 'quickadd') return buildQuickAdd(m);
+  if (m.type === 'full') return buildFullForm(m);
+  if (m.type === 'detail') return buildEventDetail(m);
+  if (m.type === 'confirmDelete') return buildConfirmDelete(m);
+  if (m.type === 'recurringChoice') return buildRecurringChoice(m);
+  if (m.type === 'agenda') return buildAgenda(m);
+  if (m.type === 'clearAll') return buildClearAll(m);
+  return document.createElement('div');
+}
+
+function buildQuickAdd(m) {
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.innerHTML = `
+    <div class="modal-title">New event</div>
+    <div class="field">
+      <input id="qa-title" placeholder="Event title" />
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label class="label">Date</label>
+        <input id="qa-date" type="date" value="${esc(m.date || isoDate(new Date()))}" />
+      </div>
+      <div class="field">
+        <label class="label">Time</label>
+        <input id="qa-time" type="time" value="${esc(m.time || '')}" />
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" id="qa-save">Save</button>
+      <button class="text-link" id="qa-more">More options</button>
+    </div>
+  `;
+  setTimeout(() => modal.querySelector('#qa-title')?.focus(), 0);
+  modal.querySelector('#qa-save').addEventListener('click', () => quickAddSave(modal));
+  modal.querySelector('#qa-more').addEventListener('click', () => {
+    const title = modal.querySelector('#qa-title').value;
+    const date = modal.querySelector('#qa-date').value;
+    const time = modal.querySelector('#qa-time').value;
+    state.modal = { type: 'full', event: { title, date, time, duration: 60, priority: 'none', recurring: 'none', color: COLORS[1], desc: '' } };
+    renderOverlays();
+  });
+  modal.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') { e.preventDefault(); quickAddSave(modal); }
+  });
+  return buildOverlay(modal);
+}
+
+function quickAddSave(modal) {
+  const title = modal.querySelector('#qa-title').value.trim();
+  if (!title) return;
+  const date = modal.querySelector('#qa-date').value;
+  const time = modal.querySelector('#qa-time').value;
+  state.events.push({
+    id: uid(), title, date, time, duration: 60,
+    priority: 'none', recurring: 'none', color: COLORS[1], desc: '',
+    createdAt: Date.now()
+  });
+  saveEvents();
+  closeModal();
+  render();
+}
+
+function buildFullForm(m) {
+  const ev = m.event || {};
+  const editing = !!ev.id;
+  const modal = document.createElement('div');
+  modal.className = 'modal modal-wide';
+  modal.innerHTML = `
+    <div class="modal-title">${editing ? 'Edit event' : 'New event'}</div>
+    <div class="field">
+      <label class="label">Title</label>
+      <input id="fe-title" value="${esc(ev.title || '')}" placeholder="Event title" />
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label class="label">Date</label>
+        <input id="fe-date" type="date" value="${esc(ev.date || isoDate(new Date()))}" />
+      </div>
+      <div class="field">
+        <label class="label">Time</label>
+        <input id="fe-time" type="time" value="${esc(ev.time || '')}" />
+      </div>
+      <div class="field" style="max-width:120px;">
+        <label class="label">Duration (min)</label>
+        <input id="fe-duration" type="number" min="15" step="15" value="${esc(ev.duration || 60)}" />
+      </div>
+    </div>
+    <div class="field">
+      <label class="label">Priority</label>
+      <div class="segmented" id="fe-priority">
+        ${['none','low','medium','high'].map(p => `
+          <button class="seg-btn ${(ev.priority||'none')===p?'active':''}" data-val="${p}">
+            ${p!=='none'?`<span class="seg-dot" style="background:${p==='high'?'var(--prio-high)':p==='medium'?'var(--prio-med)':'var(--prio-low)'};"></span>`:''}
+            ${p[0].toUpperCase()+p.slice(1)}
+          </button>
+        `).join('')}
+      </div>
+    </div>
+    <div class="field">
+      <div class="toggle-row">
+        <label>Recurring</label>
+        <div class="toggle ${ev.recurring && ev.recurring !== 'none' ? 'on' : ''}" id="fe-recurring-toggle"></div>
+      </div>
+      <div id="fe-recurring-select" style="display:${ev.recurring && ev.recurring!=='none' ? 'block' : 'none'};margin-top:6px;">
+        <select id="fe-recurring">
+          <option value="daily" ${ev.recurring==='daily'?'selected':''}>Daily</option>
+          <option value="weekly" ${(ev.recurring==='weekly'||!ev.recurring)?'selected':''}>Weekly</option>
+          <option value="monthly" ${ev.recurring==='monthly'?'selected':''}>Monthly</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label class="label">Color</label>
+      <div class="color-row" id="fe-colors">
+        ${COLORS.map(c => `
+          <div class="color-dot ${(ev.color||COLORS[1])===c?'selected':''}" data-color="${c}" style="background:${c};">
+            ${(ev.color||COLORS[1])===c?'<span class="check">✓</span>':''}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    <div class="field">
+      <label class="label">Notes</label>
+      <textarea id="fe-desc" rows="3" placeholder="Notes…">${esc(ev.desc || '')}</textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" id="fe-save">${editing ? 'Save changes' : 'Create event'}</button>
+      <button class="text-link" id="fe-cancel">Cancel</button>
+    </div>
+  `;
+
+  let selPrio = ev.priority || 'none';
+  modal.querySelectorAll('#fe-priority .seg-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      selPrio = b.dataset.val;
+      modal.querySelectorAll('#fe-priority .seg-btn').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+    });
+  });
+
+  let selColor = ev.color || COLORS[1];
+  modal.querySelectorAll('#fe-colors .color-dot').forEach(c => {
+    c.addEventListener('click', () => {
+      selColor = c.dataset.color;
+      modal.querySelectorAll('#fe-colors .color-dot').forEach(x => { x.classList.remove('selected'); x.innerHTML = ''; });
+      c.classList.add('selected');
+      c.innerHTML = '<span class="check">✓</span>';
+    });
+  });
+
+  const recToggle = modal.querySelector('#fe-recurring-toggle');
+  const recSelect = modal.querySelector('#fe-recurring-select');
+  recToggle.addEventListener('click', () => {
+    recToggle.classList.toggle('on');
+    recSelect.style.display = recToggle.classList.contains('on') ? 'block' : 'none';
+  });
+
+  modal.querySelector('#fe-cancel').addEventListener('click', () => closeModal());
+  modal.querySelector('#fe-save').addEventListener('click', () => {
+    const title = modal.querySelector('#fe-title').value.trim();
+    if (!title) return;
+    const newData = {
+      title,
+      date: modal.querySelector('#fe-date').value,
+      time: modal.querySelector('#fe-time').value,
+      duration: parseInt(modal.querySelector('#fe-duration').value, 10) || 60,
+      priority: selPrio,
+      recurring: recToggle.classList.contains('on') ? modal.querySelector('#fe-recurring').value : 'none',
+      color: selColor,
+      desc: modal.querySelector('#fe-desc').value
+    };
+    saveFullForm(ev, newData);
+  });
+
+  return buildOverlay(modal);
+}
+
+function saveFullForm(original, newData) {
+  if (!original.id) {
+    if (newData.recurring !== 'none') {
+      const group = uid();
+      const series = generateRecurring(newData, group);
+      state.events.push(...series);
+    } else {
+      state.events.push({ id: uid(), ...newData, createdAt: Date.now() });
+    }
+    saveEvents();
+    closeModal();
+    render();
+    return;
+  }
+  if (original.recurringGroupId) {
+    state.modal = { type: 'recurringChoice', original, newData, mode: 'edit' };
+    renderOverlays();
+    return;
+  }
+  const idx = state.events.findIndex(e => e.id === original.id);
+  if (idx >= 0) {
+    if (newData.recurring !== 'none' && state.events[idx].recurring === 'none') {
+      state.events.splice(idx, 1);
+      const group = uid();
+      const series = generateRecurring(newData, group);
+      state.events.push(...series);
+    } else {
+      state.events[idx] = { ...state.events[idx], ...newData };
+    }
+  }
+  saveEvents();
+  closeModal();
+  render();
+}
+
+function generateRecurring(data, group) {
+  const out = [];
+  const start = parseISODate(data.date);
+  let count = 0;
+  let cur = new Date(start);
+  const maxCount = data.recurring === 'daily' ? 365 : data.recurring === 'weekly' ? 52 : 12;
+  while (count < maxCount) {
+    out.push({
+      id: uid(),
+      title: data.title,
+      date: isoDate(cur),
+      time: data.time,
+      duration: data.duration,
+      priority: data.priority,
+      recurring: data.recurring,
+      color: data.color,
+      desc: data.desc,
+      recurringGroupId: group,
+      recurringOriginalDate: data.date,
+      createdAt: Date.now()
+    });
+    if (data.recurring === 'daily') cur = addDays(cur, 1);
+    else if (data.recurring === 'weekly') cur = addDays(cur, 7);
+    else if (data.recurring === 'monthly') cur = addMonths(cur, 1);
+    else break;
+    count++;
+  }
+  return out;
+}
+
+function buildRecurringChoice(m) {
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  const action = m.mode === 'delete' ? 'Delete' : 'Save changes to';
+  modal.innerHTML = `
+    <div class="modal-title">${action} recurring event</div>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;">This event repeats. Apply to:</p>
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <button class="settings-action-btn" data-scope="one">This event only</button>
+      <button class="settings-action-btn" data-scope="future">This and following events</button>
+      <button class="settings-action-btn" data-scope="all">All events in the series</button>
+    </div>
+    <div class="modal-actions">
+      <button class="text-link" id="rc-cancel">Cancel</button>
+    </div>
+  `;
+  modal.querySelector('#rc-cancel').addEventListener('click', () => closeModal());
+  modal.querySelectorAll('[data-scope]').forEach(b => {
+    b.addEventListener('click', () => applyRecurringChoice(m, b.dataset.scope));
+  });
+  return buildOverlay(modal);
+}
+
+function applyRecurringChoice(m, scope) {
+  const orig = m.original;
+  const group = orig.recurringGroupId;
+  if (m.mode === 'delete') {
+    if (scope === 'one') state.events = state.events.filter(e => e.id !== orig.id);
+    else if (scope === 'future') state.events = state.events.filter(e => !(e.recurringGroupId === group && e.date >= orig.date));
+    else state.events = state.events.filter(e => e.recurringGroupId !== group);
+  } else {
+    const data = m.newData;
+    if (scope === 'one') {
+      const idx = state.events.findIndex(e => e.id === orig.id);
+      if (idx >= 0) {
+        state.events[idx] = { ...state.events[idx], title: data.title, time: data.time, duration: data.duration, priority: data.priority, color: data.color, desc: data.desc, date: data.date };
+        delete state.events[idx].recurringGroupId;
+        delete state.events[idx].recurringOriginalDate;
+        state.events[idx].recurring = 'none';
+      }
+    } else if (scope === 'future') {
+      state.events = state.events.filter(e => !(e.recurringGroupId === group && e.date >= orig.date));
+      const newGroup = uid();
+      const series = generateRecurring(data, newGroup);
+      state.events.push(...series);
+    } else {
+      state.events = state.events.filter(e => e.recurringGroupId !== group);
+      const newGroup = uid();
+      const series = generateRecurring(data, newGroup);
+      state.events.push(...series);
+    }
+  }
+  saveEvents();
+  closeModal();
+  render();
+}
+
+function buildEventDetail(m) {
+  const ev = m.event;
+  const isGoogle = ev.source === 'google';
+  const dateObj = parseISODate(ev.date);
+  const dateStr = DAY_NAMES_FULL[dateObj.getDay()] + ', ' + MONTH_NAMES[dateObj.getMonth()] + ' ' + dateObj.getDate() + ', ' + dateObj.getFullYear();
+  const timeStr = ev.allDay ? 'All day' : (ev.time ? formatTime(ev.time) + ' · ' + (ev.duration || 60) + ' min' : 'No time');
+  const prioLabel = (ev.priority && ev.priority !== 'none') ? ev.priority[0].toUpperCase()+ev.priority.slice(1)+' priority' : '';
+  const modal = document.createElement('div');
+  modal.className = 'modal modal-wide';
+  modal.innerHTML = `
+    <div class="event-detail-header">
+      <div class="event-detail-bar" style="background:${ev.color||'#5eaaf5'};"></div>
+      <div class="event-detail-title">
+        ${esc(ev.title)}
+        ${isGoogle?`<span class="google-badge" style="width:18px;height:18px;font-size:11px;">G</span>`:''}
+      </div>
+    </div>
+    <div class="event-detail-meta-row"><i class="ti ti-calendar"></i> ${esc(dateStr)}</div>
+    <div class="event-detail-meta-row"><i class="ti ti-clock"></i> ${esc(timeStr)}</div>
+    ${ev.location?`<div class="event-detail-meta-row"><i class="ti ti-map-pin"></i> ${esc(ev.location)}</div>`:''}
+    ${prioLabel?`<div class="event-detail-meta-row"><span class="priority-dot ${ev.priority}"></span> ${esc(prioLabel)}</div>`:''}
+    ${ev.recurring && ev.recurring !== 'none' ? `<div class="event-detail-meta-row"><i class="ti ti-rotate"></i> Repeats ${esc(ev.recurring)}</div>`:''}
+    ${ev.desc?`<div class="event-detail-notes">${esc(ev.desc)}</div>`:''}
+    <div class="modal-actions">
+      ${isGoogle ? `
+        ${ev.url ? `<a class="btn-primary" style="text-decoration:none;display:inline-block;" href="${esc(ev.url)}" target="_blank" rel="noopener">Open in Google Calendar</a>` : '<div style="flex:1;font-size:12px;color:var(--text-tertiary);">Read-only · synced from Google Calendar</div>'}
+        <button class="text-link" id="ed-close">Close</button>
+      ` : `
+        <button class="btn-primary" id="ed-edit">Edit</button>
+        <button class="text-link danger" id="ed-delete">Delete</button>
+        <button class="text-link" id="ed-close">Close</button>
+      `}
+    </div>
+  `;
+  modal.querySelector('#ed-close')?.addEventListener('click', () => closeModal());
+  modal.querySelector('#ed-edit')?.addEventListener('click', () => {
+    state.modal = { type: 'full', event: ev };
+    renderOverlays();
+  });
+  modal.querySelector('#ed-delete')?.addEventListener('click', () => {
+    if (ev.recurringGroupId) {
+      state.modal = { type: 'recurringChoice', original: ev, mode: 'delete' };
+      renderOverlays();
+    } else {
+      state.modal = { type: 'confirmDelete', event: ev };
+      renderOverlays();
+    }
+  });
+  return buildOverlay(modal);
+}
+
+function buildConfirmDelete(m) {
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.innerHTML = `
+    <div class="modal-title">Delete event?</div>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;">"${esc(m.event.title)}" will be permanently removed.</p>
+    <div class="modal-actions">
+      <button class="btn-danger" id="cd-yes">Delete</button>
+      <button class="text-link" id="cd-no">Cancel</button>
+    </div>
+  `;
+  modal.querySelector('#cd-yes').addEventListener('click', () => {
+    state.events = state.events.filter(e => e.id !== m.event.id);
+    saveEvents();
+    closeModal();
+    render();
+  });
+  modal.querySelector('#cd-no').addEventListener('click', () => closeModal());
+  return buildOverlay(modal);
+}
+
+function buildAgenda(m) {
+  const date = m.date;
+  const dateObj = parseISODate(date);
+  const dateStr = DAY_NAMES_FULL[dateObj.getDay()] + ', ' + MONTH_NAMES[dateObj.getMonth()] + ' ' + dateObj.getDate();
+  const events = eventsOnDay(dateObj);
+  const modal = document.createElement('div');
+  modal.className = 'modal modal-xwide';
+  let body;
+  if (events.length === 0) {
+    body = `<p style="color:var(--text-tertiary);font-size:13px;text-align:center;padding:24px;">No events on this day.</p>`;
+  } else {
+    body = `<div class="agenda-list">` + events.map(e => {
+      const isGoogle = e.source === 'google';
+      const timeStr = e.allDay ? 'All day' : (e.time ? formatTime(e.time) + ' · ' + (e.duration||60) + 'm' : 'No time');
+      return `<div class="agenda-item">
+        <div class="agenda-bar" style="background:${e.color || '#5eaaf5'};"></div>
+        <div class="agenda-body">
+          <div class="agenda-title">
+            ${esc(e.title)}
+            ${isGoogle?`<span class="google-badge">G</span>`:''}
+            ${e.priority && e.priority !== 'none' ? `<span class="priority-dot ${e.priority}"></span>` : ''}
+          </div>
+          <div class="agenda-meta">${esc(timeStr)}</div>
+          ${e.desc?`<div class="agenda-notes">${esc(e.desc)}</div>`:''}
+        </div>
+        <div class="agenda-actions">
+          <button data-act="ag-view" data-id="${esc(e.id)}">View</button>
+          ${!isGoogle ? `<button data-act="ag-delete" data-id="${esc(e.id)}">Delete</button>` : ''}
+        </div>
+      </div>`;
+    }).join('') + `</div>`;
+  }
+  modal.innerHTML = `
+    <div class="modal-title">${esc(dateStr)}</div>
+    ${body}
+    <div class="modal-actions">
+      <button class="btn-primary" id="ag-new">New event</button>
+      <button class="text-link" id="ag-close">Close</button>
+    </div>
+  `;
+  modal.querySelector('#ag-close').addEventListener('click', () => closeModal());
+  modal.querySelector('#ag-new').addEventListener('click', () => {
+    state.modal = { type: 'quickadd', date };
+    renderOverlays();
+  });
+  modal.querySelectorAll('[data-act="ag-view"]').forEach(b => {
+    b.addEventListener('click', () => {
+      const ev = [...state.events, ...state.gEvents].find(e => e.id === b.dataset.id);
+      if (ev) { state.modal = { type: 'detail', event: ev }; renderOverlays(); }
+    });
+  });
+  modal.querySelectorAll('[data-act="ag-delete"]').forEach(b => {
+    b.addEventListener('click', () => {
+      const ev = state.events.find(e => e.id === b.dataset.id);
+      if (ev) { state.modal = ev.recurringGroupId ? { type: 'recurringChoice', original: ev, mode: 'delete' } : { type: 'confirmDelete', event: ev }; renderOverlays(); }
+    });
+  });
+  return buildOverlay(modal);
+}
+
+function buildClearAll() {
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.innerHTML = `
+    <div class="modal-title">Clear all events?</div>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;">This permanently deletes all your local events (Google events are not affected). Type <b>DELETE</b> to confirm.</p>
+    <input id="clear-confirm" class="confirm-input" placeholder="Type DELETE" />
+    <div class="modal-actions">
+      <button class="btn-danger" id="clear-yes" disabled style="opacity:0.5;">Clear all</button>
+      <button class="text-link" id="clear-no">Cancel</button>
+    </div>
+  `;
+  const input = modal.querySelector('#clear-confirm');
+  const btn = modal.querySelector('#clear-yes');
+  input.addEventListener('input', () => {
+    const ok = input.value === 'DELETE';
+    btn.disabled = !ok;
+    btn.style.opacity = ok ? '1' : '0.5';
+  });
+  btn.addEventListener('click', () => {
+    if (input.value !== 'DELETE') return;
+    state.events = [];
+    saveEvents();
+    closeModal();
+    render();
+  });
+  modal.querySelector('#clear-no').addEventListener('click', () => closeModal());
+  return buildOverlay(modal);
+}
+
+function buildSettings() {
+  const overlay = document.createElement('div');
+  overlay.className = 'settings-overlay';
+  overlay.addEventListener('click', () => { state.settingsOpen = false; renderOverlays(); });
+  const panel = document.createElement('div');
+  panel.className = 'settings-panel';
+  panel.addEventListener('click', (e) => e.stopPropagation());
+
+  const s = state.settings;
+  const syncTxt = (() => {
+    if (!state.syncStatus) return 'Not synced yet';
+    if (state.syncStatus.syncing) return 'Syncing…';
+    if (state.syncStatus.error) return 'Error: ' + state.syncStatus.error;
+    if (state.syncStatus.ok) {
+      const mins = Math.round((Date.now() - state.syncStatus.time) / 60000);
+      return `Synced ${mins < 1 ? 'just now' : mins + 'm ago'} · ${state.syncStatus.count} events`;
+    }
+    return '';
+  })();
+  const syncClass = state.syncStatus?.error ? 'error' : state.syncStatus?.ok ? 'ok' : '';
+
+  panel.innerHTML = `
+    <div class="settings-section">
+      <div class="settings-section-title">Appearance</div>
+      <div class="toggle-row"><label>Show weekend shading</label><div class="toggle ${s.showWeekendShading?'on':''}" data-key="showWeekendShading"></div></div>
+      <div class="toggle-row"><label>Show week numbers</label><div class="toggle ${s.showWeekNumbers?'on':''}" data-key="showWeekNumbers"></div></div>
+      <div class="toggle-row"><label>Start week on Monday</label><div class="toggle ${s.startOnMonday?'on':''}" data-key="startOnMonday"></div></div>
+      <div class="toggle-row"><label>Use 24-hour time</label><div class="toggle ${s.use24HourTime?'on':''}" data-key="use24HourTime"></div></div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Events</div>
+      <div class="toggle-row"><label>Show priority indicators</label><div class="toggle ${s.showPriorityDots?'on':''}" data-key="showPriorityDots"></div></div>
+      <div class="toggle-row"><label>Show recurring icon</label><div class="toggle ${s.showRecurringIcon?'on':''}" data-key="showRecurringIcon"></div></div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Google Calendar</div>
+      <div class="field" style="margin-bottom:8px;">
+        <label class="label">iCal URL (secret address)</label>
+        <input id="gc-url" placeholder="https://calendar.google.com/calendar/ical/…" value="${esc(s.googleCalendarUrl)}" />
+      </div>
+      <div class="field" style="margin-bottom:8px;">
+        <label class="label">CORS proxy (advanced)</label>
+        <input id="gc-proxy" value="${esc(s.corsProxy)}" />
+      </div>
+      <div class="toggle-row"><label>Auto-sync on load</label><div class="toggle ${s.autoSyncOnLoad?'on':''}" data-key="autoSyncOnLoad"></div></div>
+      <button class="settings-action-btn" data-act="sync-now">Sync now</button>
+      <div class="sync-status ${syncClass}">${esc(syncTxt)}</div>
+      ${state.gEvents.length > 0 ? `<button class="settings-action-btn" data-act="disconnect-google">Disconnect & clear cache</button>` : ''}
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Data</div>
+      <button class="settings-action-btn" data-act="export-ics">Export local events as .ics</button>
+      <button class="settings-action-btn" data-act="export-csv">Export local events as CSV</button>
+      <button class="settings-action-btn danger" data-act="clear-all">Clear all events</button>
+    </div>
+  `;
+
+  panel.querySelectorAll('.toggle[data-key]').forEach(t => {
+    t.addEventListener('click', () => {
+      const k = t.dataset.key;
+      state.settings[k] = !state.settings[k];
+      saveSettings();
+      renderOverlays();
+      render();
+    });
+  });
+
+  panel.querySelector('#gc-url').addEventListener('change', (e) => {
+    state.settings.googleCalendarUrl = e.target.value.trim();
+    saveSettings();
+  });
+  panel.querySelector('#gc-proxy').addEventListener('change', (e) => {
+    state.settings.corsProxy = e.target.value.trim();
+    saveSettings();
+  });
+
+  panel.querySelectorAll('[data-act]').forEach(b => {
+    b.addEventListener('click', () => {
+      const a = b.dataset.act;
+      if (a === 'sync-now') {
+        const urlInput = panel.querySelector('#gc-url');
+        if (urlInput) {
+          state.settings.googleCalendarUrl = urlInput.value.trim();
+          saveSettings();
+        }
+        syncGoogleCalendar();
+      }
+      if (a === 'disconnect-google') {
+        state.gEvents = [];
+        state.syncStatus = null;
+        localStorage.removeItem(STORAGE_GCAL);
+        localStorage.removeItem(STORAGE_GCAL_META);
+        renderOverlays();
+        render();
+      }
+      if (a === 'export-ics') exportICS();
+      if (a === 'export-csv') exportCSV();
+      if (a === 'clear-all') { state.settingsOpen = false; state.modal = { type: 'clearAll' }; renderOverlays(); }
+    });
+  });
+
+  const wrap = document.createElement('div');
+  wrap.appendChild(overlay);
+  wrap.appendChild(panel);
+  return wrap;
+}
+
+const PALETTE_COMMANDS = [
+  { id: 'today', icon: 'ti-calendar-event', label: 'Go to today', run: () => { state.cursor = new Date(); closePalette(); render(); } },
+  { id: 'view-month', icon: 'ti-layout-grid', label: 'Switch to month view', run: () => { state.view = 'month'; closePalette(); render(); } },
+  { id: 'view-week', icon: 'ti-layout-columns', label: 'Switch to week view', run: () => { state.view = 'week'; closePalette(); render(); } },
+  { id: 'new', icon: 'ti-plus', label: 'New event', run: () => { closePalette(); state.modal = { type: 'quickadd', date: isoDate(new Date()) }; renderOverlays(); } },
+  { id: 'new-recurring', icon: 'ti-rotate', label: 'New recurring event', run: () => { closePalette(); state.modal = { type: 'full', event: { date: isoDate(new Date()), recurring: 'weekly', duration: 60, priority: 'none', color: COLORS[1], desc: '' } }; renderOverlays(); } },
+  { id: 'sync', icon: 'ti-refresh', label: 'Sync Google Calendar now', run: () => { closePalette(); syncGoogleCalendar(); } },
+  { id: 'export-ics', icon: 'ti-download', label: 'Export as .ics', run: () => { closePalette(); exportICS(); } },
+  { id: 'export-csv', icon: 'ti-file-export', label: 'Export as CSV', run: () => { closePalette(); exportCSV(); } },
+  { id: 'settings', icon: 'ti-settings', label: 'Open settings', run: () => { closePalette(); state.settingsOpen = true; renderOverlays(); } },
+  { id: 'clear', icon: 'ti-trash', label: 'Clear all events', run: () => { closePalette(); state.modal = { type: 'clearAll' }; renderOverlays(); } }
+];
+
+function buildPalette() {
+  const q = state.paletteQuery.toLowerCase();
+  const filtered = q ? PALETTE_COMMANDS.filter(c => c.label.toLowerCase().includes(q)) : PALETTE_COMMANDS;
+  state.paletteIndex = Math.min(state.paletteIndex, Math.max(filtered.length - 1, 0));
+  const p = document.createElement('div');
+  p.className = 'palette';
+  p.innerHTML = `
+    <input id="pal-input" placeholder="Type a command…" value="${esc(state.paletteQuery)}" />
+    <div class="palette-list">
+      ${filtered.length === 0 ? `<div class="palette-empty">No commands found</div>` :
+        filtered.map((c, i) => `
+          <div class="palette-item ${i===state.paletteIndex?'active':''}" data-id="${esc(c.id)}">
+            <i class="ti ${c.icon} pal-icon"></i>
+            <span>${esc(c.label)}</span>
+          </div>
+        `).join('')
+      }
+    </div>
+  `;
+  const input = p.querySelector('#pal-input');
+  setTimeout(() => { input.focus(); input.setSelectionRange(input.value.length, input.value.length); }, 0);
+  input.addEventListener('input', () => {
+    state.paletteQuery = input.value;
+    state.paletteIndex = 0;
+    renderOverlays();
+  });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); state.paletteIndex = Math.min(state.paletteIndex + 1, filtered.length - 1); renderOverlays(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); state.paletteIndex = Math.max(state.paletteIndex - 1, 0); renderOverlays(); }
+    else if (e.key === 'Enter') { e.preventDefault(); const c = filtered[state.paletteIndex]; if (c) c.run(); }
+    else if (e.key === 'Escape') { e.preventDefault(); closePalette(); }
+  });
+  p.querySelectorAll('.palette-item').forEach((el, i) => {
+    el.addEventListener('click', () => filtered[i].run());
+    el.addEventListener('mouseenter', () => { state.paletteIndex = i; renderOverlays(); });
+  });
+  return p;
+}
+
+function closePalette() {
+  state.palette = null;
+  state.paletteQuery = '';
+  state.paletteIndex = 0;
+  renderOverlays();
+}
+
+function buildContextMenu() {
+  const { x, y, date } = state.contextMenu;
+  const menu = document.createElement('div');
+  menu.className = 'ctx-menu';
+  menu.style.left = x + 'px';
+  menu.style.top = y + 'px';
+  menu.innerHTML = `
+    <div class="ctx-item" data-act="new"><span class="ctx-icon"><i class="ti ti-plus"></i></span> New event here</div>
+    <div class="ctx-item" data-act="new-recurring"><span class="ctx-icon"><i class="ti ti-rotate"></i></span> New recurring event</div>
+    <div class="ctx-divider"></div>
+    <div class="ctx-item" data-act="agenda"><span class="ctx-icon"><i class="ti ti-list"></i></span> View agenda for this day</div>
+  `;
+  menu.querySelectorAll('.ctx-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const a = item.dataset.act;
+      state.contextMenu = null;
+      if (a === 'new') state.modal = { type: 'quickadd', date };
+      else if (a === 'new-recurring') state.modal = { type: 'full', event: { date, recurring: 'weekly', duration: 60, priority: 'none', color: COLORS[1], desc: '' } };
+      else if (a === 'agenda') state.modal = { type: 'agenda', date };
+      renderOverlays();
+    });
+  });
+  setTimeout(() => {
+    const rect = menu.getBoundingClientRect();
+    if (rect.right > window.innerWidth) menu.style.left = (window.innerWidth - rect.width - 8) + 'px';
+    if (rect.bottom > window.innerHeight) menu.style.top = (window.innerHeight - rect.height - 8) + 'px';
+  }, 0);
+  return menu;
+}
+
+function closeModal() {
+  state.modal = null;
+  renderOverlays();
+}
+
+function attachHandlers() {
+  document.querySelectorAll('[data-act]').forEach(el => {
+    const act = el.dataset.act;
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (act === 'prev') {
+        if (state.view === 'month') state.cursor = addMonths(state.cursor, -1);
+        else state.cursor = addDays(state.cursor, -7);
+        render();
+      } else if (act === 'next') {
+        if (state.view === 'month') state.cursor = addMonths(state.cursor, 1);
+        else state.cursor = addDays(state.cursor, 7);
+        render();
+      } else if (act === 'today') {
+        state.cursor = new Date(); render();
+      } else if (act === 'view-month') { state.view = 'month'; render(); }
+      else if (act === 'view-week') { state.view = 'week'; render(); }
+      else if (act === 'new') {
+        state.modal = { type: 'quickadd', date: isoDate(new Date()) }; renderOverlays();
+      } else if (act === 'settings') {
+        state.settingsOpen = true; renderOverlays();
+      } else if (act === 'more') {
+        state.modal = { type: 'agenda', date: el.dataset.date }; renderOverlays();
+      } else if (act === 'event') {
+        const id = el.dataset.id;
+        const ev = [...state.events, ...state.gEvents].find(x => x.id === id);
+        if (ev) { state.modal = { type: 'detail', event: ev }; renderOverlays(); }
+      }
+    });
+  });
+
+  document.querySelectorAll('.day-cell').forEach(el => {
+    el.addEventListener('click', (e) => {
+      if (e.target.closest('[data-act]')) return;
+      const date = el.dataset.date;
+      state.modal = { type: 'quickadd', date };
+      renderOverlays();
+    });
+    el.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      state.contextMenu = { x: e.clientX, y: e.clientY, date: el.dataset.date };
+      renderOverlays();
+    });
+  });
+
+  document.querySelectorAll('.hour-slot').forEach(el => {
+    el.addEventListener('click', (e) => {
+      if (e.target.closest('[data-act]')) return;
+      const date = el.dataset.date;
+      const hour = el.dataset.hour;
+      state.modal = { type: 'quickadd', date, time: pad(hour) + ':00' };
+      renderOverlays();
+    });
+    el.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      state.contextMenu = { x: e.clientX, y: e.clientY, date: el.dataset.date };
+      renderOverlays();
+    });
+  });
+}
+
+function exportICS() {
+  const lines = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//notion-calendar//EN','CALSCALE:GREGORIAN'];
+  for (const e of state.events) {
+    const startD = new Date(e.date + 'T' + (e.time || '00:00') + ':00');
+    const endD = new Date(startD.getTime() + (e.duration || 60) * 60000);
+    const fmt = d => d.getFullYear() + pad(d.getMonth()+1) + pad(d.getDate()) + 'T' + pad(d.getHours()) + pad(d.getMinutes()) + '00';
+    lines.push('BEGIN:VEVENT');
+    lines.push('UID:' + e.id + '@notion-calendar');
+    lines.push('DTSTART:' + fmt(startD));
+    lines.push('DTEND:' + fmt(endD));
+    lines.push('SUMMARY:' + (e.title||'').replace(/[\n,;\\]/g, m => '\\' + m));
+    if (e.desc) lines.push('DESCRIPTION:' + e.desc.replace(/\n/g,'\\n').replace(/[,;\\]/g, m => '\\' + m));
+    lines.push('END:VEVENT');
+  }
+  lines.push('END:VCALENDAR');
+  download('calendar.ics', lines.join('\r\n'), 'text/calendar');
+}
+
+function exportCSV() {
+  const headers = ['title','date','time','duration','priority','recurring','color','desc'];
+  const escCsv = v => { v = String(v == null ? '' : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v; };
+  let csv = headers.join(',') + '\n';
+  for (const e of state.events) csv += headers.map(h => escCsv(e[h])).join(',') + '\n';
+  download('calendar.csv', csv, 'text/csv');
+}
+
+document.addEventListener('keydown', (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+    e.preventDefault();
+    state.palette = {};
+    state.paletteQuery = '';
+    state.paletteIndex = 0;
+    renderOverlays();
+    return;
+  }
+  if (e.key === 'Escape') {
+    if (state.contextMenu) { state.contextMenu = null; renderOverlays(); }
+    else if (state.palette) closePalette();
+    else if (state.modal) closeModal();
+    else if (state.settingsOpen) { state.settingsOpen = false; renderOverlays(); }
+  }
+});
+
+document.addEventListener('click', (e) => {
+  if (state.contextMenu && !e.target.closest('.ctx-menu')) {
+    state.contextMenu = null;
+    renderOverlays();
+  }
+});
+
+function init() {
+  loadSettings();
+  loadEvents();
+  loadGoogleCache();
+  render();
+  setInterval(() => {
+    if (state.view === 'week' && !state.modal && !state.palette && !state.contextMenu && !state.settingsOpen) render();
+  }, 60000);
+  if (state.settings.autoSyncOnLoad && state.settings.googleCalendarUrl) {
+    syncGoogleCalendar(true);
+  }
+}
+
+init();
 </script>
 </body>
 </html>
