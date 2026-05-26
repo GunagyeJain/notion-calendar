@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Calendar</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:#fff;color:#111;font-size:14px;padding:0}
+  .cal-wrap{padding:1rem;max-width:960px;margin:0 auto}
+  .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px}
+  .cal-nav{display:flex;align-items:center;gap:8px}
+  .month-label{font-size:18px;font-weight:500;min-width:200px}
+  .btn{background:transparent;border:1px solid #ddd;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:13px;color:#111}
+  .btn:hover{background:#f5f5f5}
+  .btn-primary{background:#4285f4;color:#fff;border-color:#4285f4}
+  .btn-primary:hover{background:#3070d8;border-color:#3070d8}
+  .view-tabs{display:flex;gap:4px}
+  .view-tab{padding:5px 14px;border-radius:6px;cursor:pointer;font-size:13px;border:1px solid #ddd;background:transparent;color:#111}
+  .view-tab.active{background:#4285f4;color:#fff;border-color:#4285f4}
+  .day-names{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:12px;color:#888;padding-bottom:4px;border-bottom:1px solid #eee}
+  .day-names span{padding:4px 0}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);border-left:1px solid #eee;border-top:1px solid #eee}
+  .cal-cell{min-height:90px;border-right:1px solid #eee;border-bottom:1px solid #eee;padding:4px;cursor:pointer;position:relative}
+  .cal-cell:hover{background:#f9f9f9}
+  .cal-cell.other-month .day-num{color:#bbb}
+  .cal-cell.today .day-num{background:#4285f4;color:#fff;border-radius:50%}
+  .day-num{font-size:12px;font-weight:500;margin-bottom:3px;width:22px;height:22px;display:flex;align-items:center;justify-content:center}
+  .event-pill{border-radius:3px;padding:1px 5px;font-size:11px;margin-bottom:2px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff}
+  .more-link{font-size:11px;color:#4285f4;cursor:pointer;padding:1px 5px}
+  .week-grid{display:grid;grid-template-columns:50px repeat(7,1fr);border-left:1px solid #eee;border-top:1px solid #eee;overflow-y:auto;max-height:75vh}
+  .week-header-row{display:grid;grid-template-columns:50px repeat(7,1fr);border-left:1px solid #eee;position:sticky;top:0;background:#fff;z-index:5}
+  .week-header-cell{border-right:1px solid #eee;border-bottom:1px solid #eee;padding:4px 8px;text-align:center;font-size:12px;color:#888}
+  .week-header-cell.today-header{color:#4285f4;font-weight:500}
+  .hour-label{border-right:1px solid #eee;border-bottom:1px solid #eee;font-size:11px;color:#aaa;padding:2px 4px;text-align:right;height:48px}
+  .hour-cell{border-right:1px solid #eee;border-bottom:1px solid #eee;height:48px;position:relative;cursor:pointer}
+  .hour-cell:hover{background:#f9f9f9}
+  .week-event{position:absolute;border-radius:3px;padding:1px 4px;font-size:11px;color:#fff;overflow:hidden;cursor:pointer;z-index:2;left:1px;right:1px}
+  .overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:100;align-items:center;justify-content:center}
+  .overlay.show{display:flex}
+  .modal{background:#fff;border-radius:12px;padding:1.5rem;width:340px;max-width:95vw;border:1px solid #ddd;box-shadow:0 8px 32px rgba(0,0,0,0.12)}
+  .modal h3{font-size:16px;font-weight:500;margin-bottom:1rem}
+  .modal input,.modal textarea,.modal select{width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;background:#f9f9f9;color:#111;margin-bottom:10px;font-family:inherit}
+  .modal label{font-size:12px;color:#888;display:block;margin-bottom:3px}
+  .color-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+  .color-dot{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform 0.1s}
+  .color-dot.selected{border-color:#333;transform:scale(1.2)}
+  .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
+  .event-detail-modal{background:#fff;border-radius:12px;padding:1.25rem 1.5rem;width:320px;max-width:95vw;border:1px solid #ddd;box-shadow:0 8px 32px rgba(0,0,0,0.12)}
+</style>
+</head>
+<body>
+
+<div class="cal-wrap">
+  <div class="cal-header">
+    <div class="cal-nav">
+      <button class="btn" onclick="navigate(-1)"><i class="ti ti-chevron-left"></i></button>
+      <span class="month-label" id="monthLabel"></span>
+      <button class="btn" onclick="navigate(1)"><i class="ti ti-chevron-right"></i></button>
+      <button class="btn" onclick="goToday()" style="margin-left:4px">Today</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="view-tabs">
+        <button class="view-tab active" id="tab-month" onclick="setView('month')">Month</button>
+        <button class="view-tab" id="tab-week" onclick="setView('week')">Week</button>
+      </div>
+      <button class="btn btn-primary" onclick="openNewEvent(null)"><i class="ti ti-plus"></i> Event</button>
+    </div>
+  </div>
+  <div id="calBody"></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal" id="modalBox"></div>
+</div>
+
+<script>
+const COLORS=['#4285f4','#0f9d58','#f4b400','#db4437','#ab47bc','#00acc1','#ff7043','#5c6bc0','#e91e63','#795548'];
+let view='month', today=new Date(), cur=new Date(today.getFullYear(),today.getMonth(),1);
+let events=[];
+let editing=null;
+
+function loadEvents(){
+  try{events=JSON.parse(localStorage.getItem('notion_cal_events')||'[]')}
+  catch(e){events=[]}
+}
+function saveEvents(){
+  try{localStorage.setItem('notion_cal_events',JSON.stringify(events))}catch(e){}
+}
+loadEvents();
+
+function navigate(d){
+  if(view==='month') cur=new Date(cur.getFullYear(),cur.getMonth()+d,1);
+  else cur=new Date(cur.getTime()+d*7*86400000);
+  render();
+}
+function goToday(){
+  if(view==='month') cur=new Date(today.getFullYear(),today.getMonth(),1);
+  else cur=new Date(today);
+  render();
+}
+function setView(v){
+  view=v;
+  document.querySelectorAll('.view-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+v).classList.add('active');
+  if(v==='week') cur=new Date(today);
+  render();
+}
+function fmtDate(d){return d.toISOString().slice(0,10)}
+function isToday(d){return fmtDate(d)===fmtDate(today)}
+function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
+
+function render(){
+  if(view==='month') renderMonth();
+  else renderWeek();
+}
+
+function renderMonth(){
+  const y=cur.getFullYear(),m=cur.getMonth();
+  document.getElementById('monthLabel').textContent=cur.toLocaleString('default',{month:'long',year:'numeric'});
+  const startDay=new Date(y,m,1).getDay();
+  let html='<div class="day-names">';
+  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d=>html+=`<span>${d}</span>`);
+  html+='</div><div class="cal-grid">';
+  let day=new Date(y,m,1-startDay);
+  for(let i=0;i<42;i++){
+    const dd=new Date(day);
+    const isOther=dd.getMonth()!==m;
+    const isTod=isToday(dd);
+    const ds=fmtDate(dd);
+    const dayEvts=events.filter(e=>e.date===ds).sort((a,b)=>a.time.localeCompare(b.time));
+    html+=`<div class="cal-cell${isOther?' other-month':''}${isTod?' today':''}" onclick="openNewEvent('${ds}')">`;
+    html+=`<div class="day-num">${dd.getDate()}</div>`;
+    dayEvts.slice(0,3).forEach(e=>{
+      html+=`<div class="event-pill" style="background:${e.color||'#4285f4'}" onclick="event.stopPropagation();viewEvent('${e.id}')">${e.time?e.time+' ':''}<b style="font-weight:500">${esc(e.title)}</b></div>`;
+    });
+    if(dayEvts.length>3) html+=`<div class="more-link">+${dayEvts.length-3} more</div>`;
+    html+='</div>';
+    day.setDate(day.getDate()+1);
+  }
+  html+='</div>';
+  document.getElementById('calBody').innerHTML=html;
+}
+
+function getWeekStart(d){
+  const s=new Date(d);s.setDate(d.getDate()-d.getDay());s.setHours(0,0,0,0);return s;
+}
+
+function renderWeek(){
+  const ws=getWeekStart(cur);
+  const days=Array.from({length:7},(_,i)=>{const d=new Date(ws);d.setDate(ws.getDate()+i);return d});
+  const label=`${ws.toLocaleString('default',{month:'short',day:'numeric'})} – ${days[6].toLocaleString('default',{month:'short',day:'numeric',year:'numeric'})}`;
+  document.getElementById('monthLabel').textContent=label;
+  let html='<div class="week-header-row"><div class="week-header-cell"></div>';
+  days.forEach(d=>{
+    const tod=isToday(d);
+    html+=`<div class="week-header-cell${tod?' today-header':''}">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]} ${d.getDate()}</div>`;
+  });
+  html+='</div><div class="week-grid">';
+  for(let h=0;h<24;h++){
+    const ampm=h===0?'12am':h<12?h+'am':h===12?'12pm':(h-12)+'pm';
+    html+=`<div class="hour-label">${ampm}</div>`;
+    days.forEach(d=>{
+      const ds=fmtDate(d);
+      const hh=String(h).padStart(2,'0');
+      const slotEvts=events.filter(e=>e.date===ds&&e.time&&e.time.startsWith(hh));
+      html+=`<div class="hour-cell" onclick="openNewEvent('${ds}','${hh}:00')">`;
+      slotEvts.forEach(e=>{
+        const dur=e.duration||60;
+        const hPx=Math.max(20,dur/60*48);
+        html+=`<div class="week-event" style="background:${e.color||'#4285f4'};top:0;height:${hPx}px" onclick="event.stopPropagation();viewEvent('${e.id}')">${esc(e.title)}</div>`;
+      });
+      html+='</div>';
+    });
+  }
+  html+='</div>';
+  document.getElementById('calBody').innerHTML=html;
+}
+
+function openNewEvent(date,time){
+  editing=null;
+  const def={date:date||fmtDate(today),time:time||'09:00',color:'#4285f4'};
+  showModal(def,'new');
+}
+
+function viewEvent(id){
+  const ev=events.find(e=>e.id===id);if(!ev)return;
+  const mb=document.getElementById('modalBox');
+  mb.className='event-detail-modal';
+  mb.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="width:12px;height:12px;border-radius:2px;background:${ev.color||'#4285f4'};display:inline-block"></span>
+        <span style="font-size:16px;font-weight:500">${esc(ev.title)}</span>
+      </div>
+      <button class="btn" onclick="closeModal()" style="padding:3px 8px"><i class="ti ti-x"></i></button>
+    </div>
+    <div style="font-size:13px;color:#666;margin-bottom:6px"><i class="ti ti-calendar" style="font-size:14px;vertical-align:-2px;margin-right:6px"></i>${ev.date}${ev.time?' · '+ev.time:''}</div>
+    ${ev.desc?`<div style="font-size:13px;margin-top:8px">${esc(ev.desc)}</div>`:''}
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn" style="flex:1" onclick="editEvent('${ev.id}')"><i class="ti ti-edit"></i> Edit</button>
+      <button class="btn" style="flex:1;color:#db4437;border-color:#db4437" onclick="deleteEvent('${ev.id}')"><i class="ti ti-trash"></i> Delete</button>
+    </div>`;
+  document.getElementById('overlay').classList.add('show');
+}
+
+function editEvent(id){
+  const ev=events.find(e=>e.id===id);if(!ev)return;
+  editing=id;
+  showModal(ev,'edit');
+}
+
+function showModal(ev,mode){
+  const mb=document.getElementById('modalBox');
+  mb.className='modal';
+  const colorDots=COLORS.map(c=>`<div class="color-dot${(ev.color||'#4285f4')===c?' selected':''}" style="background:${c}" data-c="${c}" onclick="selectColor(this)"></div>`).join('');
+  mb.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <h3>${mode==='edit'?'Edit event':'New event'}</h3>
+      <button class="btn" onclick="closeModal()" style="padding:3px 8px"><i class="ti ti-x"></i></button>
+    </div>
+    <label>Title</label>
+    <input id="ev-title" placeholder="Event title" value="${esc(ev.title||'')}">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div><label>Date</label><input type="date" id="ev-date" value="${ev.date||''}"></div>
+      <div><label>Time</label><input type="time" id="ev-time" value="${ev.time||''}"></div>
+    </div>
+    <label style="margin-top:2px">Duration (minutes)</label>
+    <input type="number" id="ev-dur" value="${ev.duration||60}" min="15" step="15">
+    <label>Notes</label>
+    <textarea id="ev-desc" rows="2" placeholder="Optional notes">${esc(ev.desc||'')}</textarea>
+    <label>Color</label>
+    <div class="color-row" id="colorRow">${colorDots}</div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEvent()">Save</button>
+    </div>`;
+  document.getElementById('overlay').classList.add('show');
+}
+
+function selectColor(el){
+  document.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function getSelectedColor(){
+  const s=document.querySelector('.color-dot.selected');
+  return s?s.dataset.c:'#4285f4';
+}
+function saveEvent(){
+  const title=document.getElementById('ev-title').value.trim();
+  if(!title){alert('Please add a title');return}
+  const ev={
+    id:editing||('ev_'+Date.now()+'_'+Math.random().toString(36).slice(2)),
+    title,
+    date:document.getElementById('ev-date').value,
+    time:document.getElementById('ev-time').value,
+    duration:parseInt(document.getElementById('ev-dur').value)||60,
+    desc:document.getElementById('ev-desc').value.trim(),
+    color:getSelectedColor()
+  };
+  if(editing){const i=events.findIndex(e=>e.id===editing);if(i>-1)events[i]=ev;}
+  else events.push(ev);
+  saveEvents();closeModal();render();
+}
+function deleteEvent(id){
+  if(!confirm('Delete this event?')) return;
+  events=events.filter(e=>e.id!==id);
+  saveEvents();closeModal();render();
+}
+function closeModal(){document.getElementById('overlay').classList.remove('show');}
+document.getElementById('overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+render();
+</script>
+</body>
+</html>
