@@ -1179,6 +1179,27 @@ function eventColors(hex) {
   };
 }
 
+function googleCalendarUrl(ev) {
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: ev.title || ''
+  });
+  if (ev.allDay || !ev.time) {
+    const startD = parseISODate(ev.date);
+    const endD = addDays(startD, 1);
+    const fmt = d => d.getFullYear() + pad(d.getMonth()+1) + pad(d.getDate());
+    params.set('dates', fmt(startD) + '/' + fmt(endD));
+  } else {
+    const startD = new Date(ev.date + 'T' + ev.time + ':00');
+    const endD = new Date(startD.getTime() + (ev.duration || 60) * 60000);
+    const fmt = d => d.getFullYear() + pad(d.getMonth()+1) + pad(d.getDate()) + 'T' + pad(d.getHours()) + pad(d.getMinutes()) + '00';
+    params.set('dates', fmt(startD) + '/' + fmt(endD));
+  }
+  if (ev.desc) params.set('details', ev.desc);
+  if (ev.location) params.set('location', ev.location);
+  return 'https://calendar.google.com/calendar/render?' + params.toString();
+}
+
 function download(filename, content, mimeType) {
   const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
@@ -1862,6 +1883,7 @@ function buildEventDetail(m) {
         <button class="text-link" id="ed-close">Close</button>
       ` : `
         <button class="btn-primary" id="ed-edit">Edit</button>
+        <a class="text-link" href="${esc(googleCalendarUrl(ev))}" target="_blank" rel="noopener" title="Open Google Calendar with this event pre-filled">+ Google Calendar</a>
         <button class="text-link danger" id="ed-delete">Delete</button>
         <button class="text-link" id="ed-close">Close</button>
       `}
