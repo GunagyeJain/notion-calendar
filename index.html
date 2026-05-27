@@ -266,7 +266,7 @@ textarea { resize: vertical; min-height: 60px; }
 }
 
 .day-cell {
-  min-height: 110px;
+  min-height: 150px;
   padding: 6px 6px;
   border-right: 1px solid var(--border-subtle);
   border-bottom: 1px solid var(--border-subtle);
@@ -310,24 +310,42 @@ textarea { resize: vertical; min-height: 60px; }
 }
 
 .event-pill {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
-  padding: 2px 7px;
-  border-radius: 4px;
+  padding: 5px 8px;
+  border-radius: 5px;
   cursor: pointer;
-  white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   display: flex;
-  align-items: center;
-  gap: 4px;
+  flex-direction: column;
+  gap: 1px;
   position: relative;
+  min-height: 22px;
+}
+
+.event-pill .pill-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
 }
 
 .event-pill .pill-title {
   flex: 1;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.005em;
+}
+
+.event-pill .pill-time {
+  font-size: 10.5px;
+  font-weight: 400;
+  opacity: 0.82;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -483,9 +501,9 @@ textarea { resize: vertical; min-height: 60px; }
   position: absolute;
   left: 4px;
   right: 4px;
-  border-radius: 4px;
-  padding: 4px 8px;
-  font-size: 11px;
+  border-radius: 5px;
+  padding: 5px 9px;
+  font-size: 12px;
   font-weight: 500;
   overflow: hidden;
   cursor: pointer;
@@ -498,17 +516,20 @@ textarea { resize: vertical; min-height: 60px; }
 }
 
 .week-event .we-title {
+  font-size: 12.5px;
+  font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
+  letter-spacing: -0.005em;
 }
 
 .week-event .we-time {
-  font-size: 10px;
-  opacity: 0.75;
+  font-size: 11px;
+  opacity: 0.82;
   font-weight: 400;
 }
 
@@ -1022,9 +1043,11 @@ textarea { resize: vertical; min-height: 60px; }
   .header { padding: 10px 12px; gap: 8px; }
   .mini-stats { display: none; }
   .month-label { min-width: 110px; font-size: 16px; padding: 0 4px; }
-  .day-cell { min-height: 64px; padding: 4px 4px; }
+  .day-cell { min-height: 88px; padding: 4px 4px; gap: 2px; }
   .day-num { font-size: 12px; width: 20px; height: 20px; }
-  .event-pill { font-size: 10px; padding: 1px 5px; }
+  .event-pill { font-size: 11px; padding: 3px 6px; min-height: 18px; }
+  .event-pill .pill-title { font-size: 11px; font-weight: 600; }
+  .event-pill .pill-time { display: none; }
   .modal { width: 100%; }
   .palette { width: 100%; }
   .settings-panel { left: 12px; right: 12px; width: auto; }
@@ -1173,10 +1196,18 @@ function lightenColor(hex, amt) {
 function eventColors(hex) {
   const { r, g, b } = hexToRgb(hex);
   return {
-    bg: `rgba(${r},${g},${b},0.15)`,
-    border: `rgba(${r},${g},${b},0.4)`,
-    text: lightenColor(hex, 0.55)
+    bg: `rgba(${r},${g},${b},0.2)`,
+    border: `rgba(${r},${g},${b},0.5)`,
+    text: lightenColor(hex, 0.65)
   };
+}
+
+function formatDuration(min) {
+  if (!min || min < 1) return '';
+  if (min < 60) return min + 'm';
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return m === 0 ? h + 'h' : h + 'h ' + m + 'm';
 }
 
 function googleCalendarUrl(ev) {
@@ -1420,7 +1451,7 @@ function renderMonth() {
     if (isWeekend) classes.push('weekend');
 
     const events = inMonth ? eventsOnDay(d) : [];
-    const visible = events.slice(0, 3);
+    const visible = events.slice(0, 2);
     const overflow = events.length - visible.length;
 
     html += `<div class="${classes.join(' ')}" data-date="${isoDate(d)}">`;
@@ -1443,10 +1474,20 @@ function renderPill(e) {
   if (state.settings.showRecurringIcon && e.recurring && e.recurring !== 'none') icons += `<i class="ti ti-rotate recurring-icon"></i>`;
   if (isGoogle) icons += `<span class="google-badge" title="From Google Calendar">G</span>`;
   if (state.settings.showPriorityDots && e.priority && e.priority !== 'none') icons += `<span class="priority-dot ${e.priority}"></span>`;
-  const timePrefix = (e.time && !e.allDay) ? `<span style="opacity:0.7;margin-right:3px;">${esc(formatTime(e.time))}</span>` : '';
+  let timeLine = '';
+  if (e.allDay) {
+    timeLine = 'All day';
+  } else if (e.time) {
+    timeLine = formatTime(e.time);
+    const dur = formatDuration(e.duration);
+    if (dur) timeLine += ' · ' + dur;
+  }
   return `<div class="event-pill ${isGoogle?'google':''}" style="${styles}" data-act="event" data-id="${esc(e.id)}">
-    <span class="pill-title">${timePrefix}${esc(e.title)}</span>
-    ${icons?`<span class="pill-icons">${icons}</span>`:''}
+    <div class="pill-header">
+      <span class="pill-title">${esc(e.title)}</span>
+      ${icons?`<span class="pill-icons">${icons}</span>`:''}
+    </div>
+    ${timeLine ? `<div class="pill-time">${esc(timeLine)}</div>` : ''}
   </div>`;
 }
 
