@@ -1056,8 +1056,8 @@ const DEFAULT_SETTINGS = {
   showPriorityDots: true,
   showRecurringIcon: true,
   use24HourTime: false,
-  googleCalendarUrl: '',
-  corsProxy: 'https://corsproxy.io/?url=',
+  googleCalendarId: '',
+  googleApiKey: '',
   autoSyncOnLoad: true
 };
 
@@ -1224,168 +1224,78 @@ function saveGoogleCache() {
   localStorage.setItem(STORAGE_GCAL_META, JSON.stringify(state.syncStatus));
 }
 
-function unfoldICS(text) {
-  return text.replace(/\r\n[ \t]/g, '').replace(/\n[ \t]/g, '');
-}
-
-function parseICSDate(val, params) {
-  const allDay = params.VALUE === 'DATE';
-  if (allDay) {
-    const y = parseInt(val.slice(0,4),10);
-    const m = parseInt(val.slice(4,6),10) - 1;
-    const d = parseInt(val.slice(6,8),10);
-    return { date: new Date(y, m, d), allDay: true };
-  }
-  const y = parseInt(val.slice(0,4),10);
-  const mo = parseInt(val.slice(4,6),10) - 1;
-  const d = parseInt(val.slice(6,8),10);
-  const h = parseInt(val.slice(9,11),10);
-  const mi = parseInt(val.slice(11,13),10);
-  const isUTC = val.endsWith('Z');
-  let date;
-  if (isUTC) date = new Date(Date.UTC(y, mo, d, h, mi));
-  else date = new Date(y, mo, d, h, mi);
-  return { date, allDay: false };
-}
-
-function unescapeICS(s) {
-  return s.replace(/\\n/g, '\n').replace(/\\,/g, ',').replace(/\\;/g, ';').replace(/\\\\/g, '\\');
-}
-
-function parseICS(text) {
-  const lines = unfoldICS(text).split(/\r?\n/);
-  const events = [];
-  let current = null;
-  for (const line of lines) {
-    if (line === 'BEGIN:VEVENT') { current = {}; continue; }
-    if (line === 'END:VEVENT') {
-      if (current) events.push(current);
-      current = null;
+function apiToEvents(items) {
+  const out = [];
+  for (const it of items) {
+    if (it.status === 'cancelled') continue;
+    const start = it.start || {};
+    const end = it.end || {};
+    const allDay = !!start.date;
+    let date, time, duration = 60;
+    if (allDay) {
+      date = start.date;
+      time = '';
+      duration = 0;
+    } else if (start.dateTime) {
+      const startD = new Date(start.dateTime);
+      const endD = end.dateTime ? new Date(end.dateTime) : new Date(startD.getTime() + 3600000);
+      date = isoDate(startD);
+      time = pad(startD.getHours()) + ':' + pad(startD.getMinutes());
+      duration = Math.max(15, Math.round((endD - startD) / 60000));
+    } else {
       continue;
     }
-    if (!current) continue;
-    const colonIdx = line.indexOf(':');
-    if (colonIdx === -1) continue;
-    const left = line.slice(0, colonIdx);
-    const val = line.slice(colonIdx + 1);
-    const parts = left.split(';');
-    const key = parts[0];
-    const params = {};
-    for (let i = 1; i < parts.length; i++) {
-      const [pk, pv] = parts[i].split('=');
-      params[pk] = pv;
-    }
-    if (key === 'SUMMARY') current.summary = unescapeICS(val);
-    else if (key === 'DESCRIPTION') current.description = unescapeICS(val);
-    else if (key === 'LOCATION') current.location = unescapeICS(val);
-    else if (key === 'UID') current.uid = val;
-    else if (key === 'DTSTART') current.start = parseICSDate(val, params);
-    else if (key === 'DTEND') current.end = parseICSDate(val, params);
-    else if (key === 'RRULE') current.rrule = val;
-    else if (key === 'URL') current.url = val;
-  }
-  return events;
-}
-
-function parseRRULE(rrule) {
-  const parts = rrule.split(';');
-  const r = {};
-  for (const p of parts) {
-    const [k, v] = p.split('=');
-    r[k] = v;
-  }
-  return r;
-}
-
-function expandRecurring(ev, rangeStart, rangeEnd) {
-  if (!ev.rrule || !ev.start) return [ev];
-  const rule = parseRRULE(ev.rrule);
-  const freq = rule.FREQ;
-  const interval = parseInt(rule.INTERVAL || '1', 10);
-  const count = rule.COUNT ? parseInt(rule.COUNT, 10) : null;
-  let until = null;
-  if (rule.UNTIL) until = parseICSDate(rule.UNTIL, {}).date;
-  const results = [];
-  const startDate = new Date(ev.start.date);
-  const duration = ev.end ? (ev.end.date - ev.start.date) : 0;
-  let cur = new Date(startDate);
-  let n = 0;
-  const maxIter = 800;
-  while (n < maxIter) {
-    if (until && cur > until) break;
-    if (count && n >= count) break;
-    if (cur > rangeEnd) break;
-    if (cur >= rangeStart || addDays(cur, 1) >= rangeStart) {
-      const occStart = new Date(cur);
-      const occEnd = new Date(cur.getTime() + duration);
-      results.push({ ...ev, start: { date: occStart, allDay: ev.start.allDay }, end: { date: occEnd, allDay: ev.start.allDay }, _occurrence: n });
-    }
-    if (freq === 'DAILY') cur = addDays(cur, interval);
-    else if (freq === 'WEEKLY') cur = addDays(cur, 7 * interval);
-    else if (freq === 'MONTHLY') cur = addMonths(cur, interval);
-    else if (freq === 'YEARLY') { const nd = new Date(cur); nd.setFullYear(nd.getFullYear() + interval); cur = nd; }
-    else break;
-    n++;
-  }
-  return results;
-}
-
-function icsToEvents(parsed) {
-  const rangeStart = addMonths(new Date(), -6);
-  const rangeEnd = addMonths(new Date(), 12);
-  const out = [];
-  for (const e of parsed) {
-    if (!e.start) continue;
-    const occurrences = expandRecurring(e, rangeStart, rangeEnd);
-    for (const occ of occurrences) {
-      const d = occ.start.date;
-      const date = isoDate(d);
-      const time = occ.start.allDay ? '' : (pad(d.getHours()) + ':' + pad(d.getMinutes()));
-      let duration = 60;
-      if (occ.end && !occ.start.allDay) {
-        duration = Math.max(15, Math.round((occ.end.date - occ.start.date) / 60000));
-      } else if (occ.start.allDay) {
-        duration = 0;
-      }
-      out.push({
-        id: 'g_' + (occ.uid || uid()) + '_' + occ._occurrence,
-        title: occ.summary || '(no title)',
-        date,
-        time,
-        duration,
-        priority: 'none',
-        recurring: 'none',
-        color: '#5eaaf5',
-        desc: occ.description || '',
-        location: occ.location || '',
-        url: occ.url || '',
-        source: 'google',
-        allDay: occ.start.allDay
-      });
-    }
+    out.push({
+      id: 'g_' + (it.id || uid()),
+      title: it.summary || '(no title)',
+      date,
+      time,
+      duration,
+      priority: 'none',
+      recurring: 'none',
+      color: '#5eaaf5',
+      desc: it.description || '',
+      location: it.location || '',
+      url: it.htmlLink || '',
+      source: 'google',
+      allDay
+    });
   }
   return out;
 }
 
 async function syncGoogleCalendar(silent) {
-  const url = state.settings.googleCalendarUrl.trim();
-  if (!url) {
-    state.syncStatus = { error: 'No iCal URL configured', time: Date.now() };
+  const calendarId = (state.settings.googleCalendarId || '').trim();
+  const apiKey = (state.settings.googleApiKey || '').trim();
+  if (!calendarId || !apiKey) {
+    state.syncStatus = { error: 'Calendar ID and API key required', time: Date.now() };
     saveGoogleCache();
     if (!silent) render();
     return;
   }
-  const proxy = state.settings.corsProxy || '';
-  const fetchUrl = proxy ? proxy + encodeURIComponent(url) : url;
+  const now = new Date();
+  const timeMin = new Date(now.getFullYear(), now.getMonth() - 3, 1).toISOString();
+  const timeMax = new Date(now.getFullYear(), now.getMonth() + 12, 0).toISOString();
+  const url = 'https://www.googleapis.com/calendar/v3/calendars/'
+    + encodeURIComponent(calendarId) + '/events'
+    + '?key=' + encodeURIComponent(apiKey)
+    + '&timeMin=' + encodeURIComponent(timeMin)
+    + '&timeMax=' + encodeURIComponent(timeMax)
+    + '&singleEvents=true&orderBy=startTime&maxResults=2500';
   state.syncStatus = { syncing: true, time: Date.now() };
   if (state.settingsOpen) renderOverlays();
   try {
-    const res = await fetch(fetchUrl);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const text = await res.text();
-    if (!text.includes('BEGIN:VCALENDAR')) throw new Error('Invalid iCal data');
-    const parsed = parseICS(text);
-    state.gEvents = icsToEvents(parsed);
+    const res = await fetch(url);
+    if (!res.ok) {
+      let errMsg = 'HTTP ' + res.status;
+      try {
+        const errData = await res.json();
+        if (errData.error && errData.error.message) errMsg = errData.error.message;
+      } catch {}
+      throw new Error(errMsg);
+    }
+    const data = await res.json();
+    state.gEvents = apiToEvents(data.items || []);
     state.syncStatus = { ok: true, count: state.gEvents.length, time: Date.now() };
     saveGoogleCache();
   } catch (err) {
@@ -2122,13 +2032,14 @@ function buildSettings() {
     <div class="settings-section">
       <div class="settings-section-title">Google Calendar</div>
       <div class="field" style="margin-bottom:8px;">
-        <label class="label">iCal URL (secret address)</label>
-        <input id="gc-url" placeholder="https://calendar.google.com/calendar/ical/…" value="${esc(s.googleCalendarUrl)}" />
+        <label class="label">Calendar ID</label>
+        <input id="gc-id" placeholder="abc123@group.calendar.google.com" value="${esc(s.googleCalendarId || '')}" />
       </div>
       <div class="field" style="margin-bottom:8px;">
-        <label class="label">CORS proxy (advanced)</label>
-        <input id="gc-proxy" value="${esc(s.corsProxy)}" />
+        <label class="label">API key</label>
+        <input id="gc-key" type="password" placeholder="AIza…" value="${esc(s.googleApiKey || '')}" />
       </div>
+      <p style="font-size:11px;color:var(--text-tertiary);margin:4px 0 8px;line-height:1.45;">Calendar must be set to public in Google Calendar settings. Free API key from <span style="color:var(--text-secondary);">console.cloud.google.com</span>.</p>
       <div class="toggle-row"><label>Auto-sync on load</label><div class="toggle ${s.autoSyncOnLoad?'on':''}" data-key="autoSyncOnLoad"></div></div>
       <button class="settings-action-btn" data-act="sync-now">Sync now</button>
       <div class="sync-status ${syncClass}">${esc(syncTxt)}</div>
@@ -2152,12 +2063,12 @@ function buildSettings() {
     });
   });
 
-  panel.querySelector('#gc-url').addEventListener('change', (e) => {
-    state.settings.googleCalendarUrl = e.target.value.trim();
+  panel.querySelector('#gc-id').addEventListener('change', (e) => {
+    state.settings.googleCalendarId = e.target.value.trim();
     saveSettings();
   });
-  panel.querySelector('#gc-proxy').addEventListener('change', (e) => {
-    state.settings.corsProxy = e.target.value.trim();
+  panel.querySelector('#gc-key').addEventListener('change', (e) => {
+    state.settings.googleApiKey = e.target.value.trim();
     saveSettings();
   });
 
@@ -2165,11 +2076,11 @@ function buildSettings() {
     b.addEventListener('click', () => {
       const a = b.dataset.act;
       if (a === 'sync-now') {
-        const urlInput = panel.querySelector('#gc-url');
-        if (urlInput) {
-          state.settings.googleCalendarUrl = urlInput.value.trim();
-          saveSettings();
-        }
+        const idInput = panel.querySelector('#gc-id');
+        const keyInput = panel.querySelector('#gc-key');
+        if (idInput) state.settings.googleCalendarId = idInput.value.trim();
+        if (keyInput) state.settings.googleApiKey = keyInput.value.trim();
+        saveSettings();
         syncGoogleCalendar();
       }
       if (a === 'disconnect-google') {
@@ -2405,7 +2316,7 @@ function init() {
   setInterval(() => {
     if (state.view === 'week' && !state.modal && !state.palette && !state.contextMenu && !state.settingsOpen) render();
   }, 60000);
-  if (state.settings.autoSyncOnLoad && state.settings.googleCalendarUrl) {
+  if (state.settings.autoSyncOnLoad && state.settings.googleCalendarId && state.settings.googleApiKey) {
     syncGoogleCalendar(true);
   }
 }
